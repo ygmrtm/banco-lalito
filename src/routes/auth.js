@@ -2,6 +2,9 @@ const express = require('express');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session = require('express-session');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -40,7 +43,7 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   function(req, res) {
     // Successful authentication, redirect to main dashboard.
-    res.redirect('/src/front-end/pages/main.html');
+    res.redirect('/pages/main.html');
   }
 );
 

@@ -1,0 +1,175 @@
+/* Common reset for margins and paddings */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Full-screen layout for the entire app */
+  html, body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+  }
+  
+  /* Floating effect */
+  .container {
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  /* Hover effect to enhance the "floating" feel */
+  .container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+  }
+  /* Show the banner when needed */
+  .show-banner {
+    display: block;
+  }
+  .title {
+    text-align: center;
+    color: #f0f0f0;
+    text-shadow:  -0.8px -0.8px 0px rgba(0, 0, 0, 0.9);
+  }
+  .banner {
+    font-weight: bold;
+    background-color: rgba(0, 123, 255, 0.7);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    display: none;
+  }
+  .user-info {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    color: #f0f0f0;
+    text-shadow:  -0.5px -0.5px 0px rgba(0, 0, 0, 0.9);
+
+  }
+  .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+  }
+  .section {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      width: 80%;
+      max-width: 800px;
+      box-shadow: 5px 10px 20px rgba(0, 0, 0, 0.1);
+
+  }
+  .dashboard {
+    background-color: white;
+    box-shadow: 5px 10px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+  }
+  .button-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      align-items: center;
+  }
+  .button {
+    padding: 10px 20px;
+    background-color: #59729a;
+    border: 1px solid #91a4c3;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+    transition: all 0.2s ease;
+    margin: 10px;
+
+  }
+  .button:disabled {
+      opacity: 0.5;
+      background-color: #ccc;
+      cursor: not-allowed;      
+  }
+  
+  /* Button with logo inside */
+  button img {
+    max-width: 20px;
+    margin-right: 10px;  /* Space between logo and text */
+    margin-left: 10px;  /* Space between logo and text */
+  }
+    
+  /* Hover effect for buttons */
+  button:hover:not(:disabled) {
+    background-color: #357ae8;
+    transform: translateY(-2px);
+  }
+  
+  /* Focus state for accessibility */
+  button:focus {
+    outline: 2px solid #333;
+  }
+
+
+  .drag-drop {
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    font-size: 16px;
+    color: #f0f0f0;
+    text-shadow:  -0.5px -0.5px 0.1px rgba(0, 0, 0, 0.9);
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-shadow: 5px 10px 20px rgba(80, 118, 234, 0.1);
+  }
+  /* Change the style when dragging files over */
+  #drag-drop.drag-over {
+    border-color: #357ae8;
+    background-color: #f0f8ff;
+  }
+  .input {
+      width: 100%;
+      padding: 20px;
+      margin-bottom: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+  }
+  .footer {
+      background-color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      font-size: 12px;
+      color: #f0f0f0;
+      text-shadow:  -0.5px -0.5px 0px rgba(0, 0, 0, 0.9);
+    }
+ 
+          
