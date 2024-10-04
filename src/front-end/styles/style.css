@@ -1,0 +1,122 @@
+/* Common reset for margins and paddings */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Full-screen layout for the entire app */
+  html, body {
+    height: 100%;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f4f4f9;
+    color: #333;
+  }
+  
+  /* Floating effect */
+  .container {
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  /* Hover effect to enhance the "floating" feel */
+  .container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+  }
+/* Basic button style */
+button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4285f4;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 10px;
+  }
+  
+  /* Button with logo inside */
+  button img {
+    max-width: 20px;
+    margin-right: 10px;  /* Space between logo and text */
+  }
+  
+  /* Disabled button style */
+  button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  /* Hover effect for buttons */
+  button:hover:not(:disabled) {
+    background-color: #357ae8;
+    transform: translateY(-2px);
+  }
+  
+  /* Focus state for accessibility */
+  button:focus {
+    outline: 2px solid #333;
+  }
+/* Top banner to display API responses */
+#response_banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ffdd57;
+    color: #333;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: none; /* Hidden by default */
+  }
+  
+  /* Show the banner when needed */
+  .show-banner {
+    display: block;
+  }
+/* Fixed footer at the bottom of the page */
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+  }
+/* Drag-and-drop box */
+#drag-drop-area {
+    width: 300px;
+    height: 150px;
+    border: 2px dashed #4285f4;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #333;
+    font-size: 16px;
+    background-color: #fff;
+  }
+  
+  /* Change the style when dragging files over */
+  #drag-drop-area.drag-over {
+    border-color: #357ae8;
+    background-color: #f0f8ff;
+  }
+          

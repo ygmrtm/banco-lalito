@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banco Lalito 🍂 Dashboard</title>
+  <link rel="stylesheet" href="../styles/style.css">
+</head>
+<body>
+  <!-- Top banner for status messages -->
+  <div id="response_banner">Status messages will appear here</div>
+
+  <!-- Main container for buttons -->
+  <div class="container">
+    <button id="pendientes-btn"><img src="../images/tasks-icon.png" alt="Pendientes Icon"> Pendientes</button>
+    <button id="estadisticas-btn"><img src="../images/stats-icon.png" alt="Estadísticas Icon"> Estadísticas</button>
+    <button id="mandar-correos-btn"><img src="../images/mail-icon.png" alt="Mandar Correos Icon"> Mandar Correos</button>
+    <div id="drag-drop-area">Drag & Drop your .xlsx file here</div>
+  </div>
+
+  <!-- Footer with current date, author, and version -->
+  <footer></footer> <!-- The date will be injected dynamically by JavaScript -->
+
+  <script>
+    // Enable/Disable buttons based on response_banner update
+    document.getElementById('pendientes-btn').addEventListener('click', function() {
+      this.disabled = true;
+      // Call backend API and update the banner...
+      setTimeout(() => {
+        document.getElementById('response_banner').textContent = 'Pendientes Processed!';
+        document.getElementById('response_banner').classList.add('show-banner');
+        this.disabled = false;
+      }, 3000);
+    });
+  </script>
+  <script>
+    // Function to generate current date in YYYY-MM-DD format
+    function getCurrentDate() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+  
+    // Inject the current date into the footer
+    document.addEventListener('DOMContentLoaded', function() {
+      const footer = document.querySelector('footer');
+      footer.textContent = `${getCurrentDate()} | ygmrtm | Version 2.0.0`;
+    });
+  </script>  
+</body>
+</html>
