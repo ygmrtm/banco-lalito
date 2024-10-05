@@ -1,14 +1,13 @@
 const express = require('express');
 const { sendToNotionMoonLog } = require('../controllers/notion');
-const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed } = require('./core');
+const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts } = require('./core');
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const dotenv = require('dotenv');
 dotenv.config();
-
 const router = express.Router();
 
-if (!process.env.NOTION_TOKEN || !process.env.DATABASE_PPL_ID || !process.env.DATABASE_BAK_ID) {
+if (!process.env.NOTION_TOKEN || !process.env.DATABASE_PPL_ID || !process.env.DATABASE_BAK_ID || !process.env.SENDGRID_API_KEY) {
     throw new Error('Missing required environment variables for authentication.');
 }
 
@@ -118,8 +117,6 @@ router.post('/estadisticas', async (req, res) => {
             }
         }
     });
-
-    //console.log(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString);
     sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString);      
     } catch (error) {
       console.error('Error generateBalance:', error);
@@ -127,5 +124,21 @@ router.post('/estadisticas', async (req, res) => {
   res.json({ status: "Done statistics..." });
 
 });
+
+
+router.post('/send-emails', async (req, res) => {
+    try {
+      const { days, todoist } = await req.body;
+      console.log("Received days:", days, "Received todoist:", todoist);
+      const responded = await executeLastMvmnts(days, todoist);
+      const message = 'Emails sent successfully ' + responded;
+      res.json({ status: message });
+    } catch (error) {
+        console.error('Error sending emails:', error);
+        res.status(500).json({ status: 'Error sending emails', error: error.message });
+    }
+});
+
+
 
 module.exports = router;

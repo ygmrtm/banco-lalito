@@ -1,5 +1,6 @@
 
 const { addNotionPageToDatabase, updateNotionPage } = require("../controllers/notion.js");
+const { templateMail, sendFinancialReport } = require("./mail.js");
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const dotenv = require('dotenv');
@@ -609,7 +610,7 @@ function generaRifa(data){
  * @param days The number of days to consider for the last movements
  * @returns A Promise that resolves once the process is completed
  */
-const executeLastMvmnts = async (todoistToLook, days) => {
+const executeLastMvmnts = async (days, todoistToLook) => {
   console.log(`== Sending Last Movements in ${days} days for ${todoistToLook} ==`);
   try {
     const response = await notion.databases.query({  //get all
@@ -624,7 +625,7 @@ const executeLastMvmnts = async (todoistToLook, days) => {
     let data = response.results;
     const todoistGanador = generaRifa(data);
     const totalFamiliar = data.reduce((acc, item) => acc + (Number(item.properties.current$.formula.number) > 0 ? Number(item.properties.current$.formula.number) : 0), 0);
-    console.log("executeLastMvmnts 🔢 = ", response.results.length, todoistToLook, ' ganador 🎉', todoistGanador,`totalFamiliar=${totalFamiliar}`);
+    console.log("executeLastMvmnts 🔢 = ", response.results.length, todoistToLook, ' 🎉ganador:', todoistGanador,`totalFamiliar=${totalFamiliar}`);
     if (todoistToLook !== 'all') {
       const response2 = await notion.databases.query({  //get specific todoist name
         database_id: DATABASE_PPL_ID,
@@ -675,9 +676,9 @@ const executeLastMvmnts = async (todoistToLook, days) => {
       const invInicial = (current - sumIntereses - sumIngresos - sumEgresos);
       const porcIntereses = ((sumIntereses * 12) / invInicial) * 100;
       const [ultimoPago, ultimoPagoDias] = await getUltimoPago(todoist, notionid);
-      const emailContent = await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart, sumMovUltimos30Dias, promedioBalance / total
-        , iconUrl, from30, days, sumEgresos, sumIngresos, sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);
-      sendFinancialReport(mail, todoist, emailContent, current < 0);
+      const emailContent = await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart, sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos, sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);
+      //console.log("emailContent---", emailContent);
+      await sendFinancialReport(mail, todoist, emailContent, current < 0);
     });
   } catch (error) {
     console.error('Error executeLastMvmnts:', error);
@@ -786,4 +787,6 @@ const executeCCProcess = async (cleanedData) => {
   }
 };
   
-module.exports = { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed };
+module.exports = { movimiento, mantenimiento, dispersionNomina
+    , inversiones, sobrinas, markAsProcessed, executeLastMvmnts
+    , executeCCProcess, getRandomKey, getDaysBetweenDates };
