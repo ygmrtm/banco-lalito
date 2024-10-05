@@ -40,36 +40,16 @@
         <div class="button-group">
             <button class="button" onclick="alert('Web Playback SDK will be implemented soon... dont bother me now.')">
               <img src="../images/spotify-logo.png" alt="Spotify">Spotify</button>
-            <button class="button" disabled><img src="../images/notion-logo.png" alt="Notion">Notion</button>
-            <button class="button" disabled><img src="../images/todoist-logo.png" alt="Todoist">Todoist</button>
-            <button class="button" disabled><img src="../images/python-logo.png" alt="Python Scripts">Python Scripts</button>
-            <button class="button" disabled><img src="../images/mongodb-logo.png" alt="MongoDB">MongoDB</button>
+            <button class="button" id="notion-btn" disabled><img src="../images/notion-logo.png" alt="Notion">Notion</button>
+            <button class="button" id="todoist-btn" disabled><img src="../images/todoist-logo.png" alt="Todoist">Todoist</button>
+            <button class="button" id="python-btn" disabled><img src="../images/python-logo.png" alt="Python Scripts">Python Scripts</button>
+            <button class="button" id="mongodb-btn" disabled><img src="../images/mongodb-logo.png" alt="MongoDB">MongoDB</button>
         </div>
       </div>
-    </div>
-
-
-       
-
-  
+  </div> 
   <!-- Footer with current date, author, and version -->
   <footer class="footer"></footer> <!-- The date will be injected dynamically by JavaScript -->
-
-  <script>
-    // Function to generate current date in YYYY-MM-DD format
-    function getCurrentDate() {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-      const day = String(today.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    // Inject the current date into the footer
-    document.addEventListener('DOMContentLoaded', function() {
-      const footer = document.querySelector('footer');
-      footer.textContent = `${getCurrentDate()} | ygmrtm | Version 2.0.0`;
-    });
-  </script>
+  <!-- include main.js -->
+  <script src="main.js"></script>
 </body>
 </html>

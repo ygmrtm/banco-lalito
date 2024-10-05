@@ -12,7 +12,7 @@ const router = express.Router();
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "/auth/google/callback"
+    callbackURL: process.env.GOOGLE_REDIRECT_URI
   },
   function(token, tokenSecret, profile, done) {
     // Here you would find or create a user in your DB
