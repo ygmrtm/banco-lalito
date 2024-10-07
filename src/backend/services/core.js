@@ -555,12 +555,9 @@ async function getMovements(notionid, from, to) {
       }, 
       sorts: [{ property: 'mvmnt_date', direction: 'descending' }]
     });
-    
     console.log("getMovements 🔢 = ", response.results.length, notionid);
-    
     const data = response.results || [];
     const returnArray = [];
-    
     data.forEach((item) => {
       returnArray.push({
         concept: item.properties.concept.rich_text[0].plain_text,
@@ -712,12 +709,23 @@ async function getUltimoPago(todoistToLook, notionid) {
   }    
   return [ultimoPago, ultimoPagoDias];
 }
+const spanishToEnglishMonths = {
+    "ene": "Jan", "feb": "Feb", "mar": "Mar", "abr": "Apr", "may": "May", "jun": "Jun",
+    "jul": "Jul", "ago": "Aug", "sep": "Sep", "oct": "Oct", "nov": "Nov", "dic": "Dec"
+ };
+  
+function parseSpanishDate(dateString) {
+    const [day, month, year] = dateString.split(' ');
+    const englishMonth = spanishToEnglishMonths[month.toLowerCase()] || month;
+    const parsedDate = new Date(`${day} ${englishMonth} ${year}`);
+    return parsedDate.toISOString().split('T')[0];
+}
 
 /**
  * Executes a process to handle credit card data.
  * 
  * @param {any} cleanedData - The cleaned credit card data to be processed.
- * @returns {Promise<void>} - A promise that resolves once the process is completed.
+ * @returns {Promise<boolean>} - A promise that resolves to true if records were processed, false otherwise.
  */
 const executeCCProcess = async (cleanedData) => {
   console.log(`== executeCCProcess ==`);
@@ -748,9 +756,9 @@ const executeCCProcess = async (cleanedData) => {
 
     const fromNotion = data.map((item) => {
       const when = item.properties.when.date.start;
-      const descriptionTrim = item.properties.description.rich_text[0].plain_text.replaceAll(' ', '');
+      const descriptionTrim = item.properties.description.rich_text[0].plain_text.replace(/ /g, "");
       const monto = item.properties.monto.number;
-      const key = when.replaceAll('-', '').concat(descriptionTrim).concat((monto * -1).toString());
+      const key = when.replace(/-/g, "").concat(descriptionTrim).concat((monto * -1).toString());
       return { key };
     });
 
@@ -759,7 +767,7 @@ const executeCCProcess = async (cleanedData) => {
       return cleanedArray.filter(item => !notionKeys.has(item.key));
     };
     const nonMatchingRecords = getNonMatchingKeys(cleanedData, fromNotion);
-
+    let recordsProcessed = 0;
     nonMatchingRecords.forEach((row) => {
       if (row.compras) {
         const properties = {
@@ -778,15 +786,16 @@ const executeCCProcess = async (cleanedData) => {
           when: { date: { start: row.fecha } }
         };
         addNotionPageToDatabase(DATABASE_CC_ID, properties2, -1);
+        recordsProcessed++;
       }
     });
-    return true;
+    return recordsProcessed;
   } catch (error) {
     console.error('Error executeCCProcess:', error);
-    return false; 
+    return 0; 
   }
 };
   
 module.exports = { movimiento, mantenimiento, dispersionNomina
     , inversiones, sobrinas, markAsProcessed, executeLastMvmnts
-    , executeCCProcess, getRandomKey, getDaysBetweenDates };
+    , executeCCProcess, getRandomKey, getDaysBetweenDates, parseSpanishDate };

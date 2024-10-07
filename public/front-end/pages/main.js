@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mandarCorreosBtn = document.getElementById('mandar-correos-btn');
     const daysInput = document.getElementById('days-input');
     const todoistInput = document.getElementById('todoist-input');
+    const dragDropArea = document.getElementById('drag-drop-area');
+    const processXlsxBtn = document.getElementById('process-xlsx-btn');
+    let selectedFile = null;
 
 
     pendientesBtn.addEventListener('click', async () => { // add event listener to pendientes button
@@ -139,6 +142,68 @@ document.addEventListener('DOMContentLoaded', () => {
                 banner.style.display = 'none';
                 notionBtn.disabled = false; // Re-enable the button after processing
             }, 3000);
+        }
+    });
+
+    // Open file dialog when clicking the drag-drop area
+    dragDropArea.addEventListener('click', () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.xlsx';
+        fileInput.onchange = (event) => {
+            handleFileSelect(event.target.files[0]);
+        };
+        fileInput.click();
+    });
+
+    // Handle drag-and-drop events
+    dragDropArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        dragDropArea.classList.add('drag-over');
+    });
+
+    dragDropArea.addEventListener('dragleave', () => {
+        dragDropArea.classList.remove('drag-over');
+    });
+
+    dragDropArea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dragDropArea.classList.remove('drag-over');
+        handleFileSelect(event.dataTransfer.files[0]);
+    });
+
+    function handleFileSelect(file) {
+        if (file && file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            selectedFile = file;
+            processXlsxBtn.disabled = false; // Enable the button
+            dragDropArea.textContent = `Selected file: ${file.name}`;
+        } else {
+            alert('Please select a valid .xlsx file.');
+        }
+    }
+
+    // Process the file when the button is clicked
+    processXlsxBtn.addEventListener('click', async () => {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        try {
+            const response = await fetch('/api/process-xlsx', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Processed records:', result.status);
+                alert('File processed successfully!');
+                processXlsxBtn.disabled = true; // Disable the button after processing
+            } else {
+                alert('Error processing file. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing the file.');
         }
     });
 });

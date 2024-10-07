@@ -116,21 +116,22 @@
   }
 
 
-  .drag-drop {
+  .drag-drop-area {
     border: 2px dashed #ccc;
     border-radius: 4px;
     padding: 20px;
     text-align: center;
     font-size: 16px;
+    cursor: pointer;
     color: #f0f0f0;
     text-shadow:  -0.5px -0.5px 0.1px rgba(0, 0, 0, 0.9);
     margin-top: 10px;
     margin-bottom: 10px;
     width: 100%;
-    box-shadow: 5px 10px 20px rgba(80, 118, 234, 0.1);
+    box-shadow: 5px 10px 20px rgba(80, 118, 234, 0.15);
   }
   /* Change the style when dragging files over */
-  #drag-drop.drag-over {
+  .drag-drop-area.drag-over {
     border-color: #357ae8;
     background-color: #f0f8ff;
   }

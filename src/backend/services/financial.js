@@ -1,8 +1,12 @@
 const express = require('express');
 const { sendToNotionMoonLog } = require('../controllers/notion');
-const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts } = require('./core');
+const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts, parseSpanishDate, executeCCProcess } = require('./core');
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
+const multer = require('multer');
+const xlsx = require('xlsx'); // Make sure to install this package
+const upload = multer({ dest: 'uploads/' }); // Directory to store uploaded files
+const fs = require('fs');
 const dotenv = require('dotenv');
 dotenv.config();
 const router = express.Router();
@@ -58,6 +62,8 @@ router.post('/pendientes', async (req, res) => {
         }
         if (markAsDone) markAsProcessed(pageBlgId);
       });
+
+      
       res.json({ status: "Processed " + data.length + " pending transactions." });
     } catch (error) {
       console.error("Error executePendingProcess:", error);    
@@ -139,6 +145,65 @@ router.post('/send-emails', async (req, res) => {
     }
 });
 
+// Endpoint to process the uploaded XLSX file
+router.post('/process-xlsx', upload.single('file'), async (req, res) => {
+  try {
+      const filePath = req.file.path;
+      const fileName = req.file.originalname;
+      const workbook = xlsx.readFile(filePath);
+      const sheetName = workbook.SheetNames[0]; // Get the first sheet
+      const sheet = workbook.Sheets[sheetName];
+      const records = xlsx.utils.sheet_to_json(sheet); // Convert to JSON
 
+      const cleanedData = records.map((row) => {
+        const fechaRaw = row.Fecha;
+        const description = row.Descripción ;
+        const descriptionTrim = description.replace(/ /g, "");
+        const pagosDepositos = row['Pagos y Depósitos'];
+        const comprasRaw = row.Compras;
+  
+        const fecha = parseSpanishDate(fechaRaw);
+        const compras = parseFloat(comprasRaw.replace('$', '').replace(',', '').trim());
+        const key = fecha.replace(/-/g, "") + descriptionTrim + compras.toString();
+  
+        return {
+          key,
+          fecha,
+          description,
+          descriptionTrim,
+          pagosDepositos,
+          compras
+        };      
+      });
+
+      const recordsProcessed = await executeCCProcess(cleanedData);
+      if (recordsProcessed > 0) {
+        const currentDateFormatted = (new Date()).toISOString().slice(0, 10).replace(/-/g, '');       
+  
+        // Ensure the "uploads" directory exists
+        const backupPath = process.env.BKP_CC_PATH || '';
+        try {
+          if (!backupPath) throw new Error('BKP_CC_PATH is not defined');
+          await fs.promises.stat(backupPath);
+        } catch (e) {
+          if (e.code === 'ENOENT') {
+            await fs.promises.mkdir(backupPath, { recursive: true });
+          } else {
+            throw e;
+          }
+        }   
+        // Move and rename the processed file
+        const newFileName = `processed_${currentDateFormatted}_${fileName}`; 
+        const newFilePath = `${backupPath}/${newFileName}`;
+        await fs.promises.rename(filePath, newFilePath); // Move and rename the file
+        console.log(`File moved to: ${newFilePath}`); 
+      }
+
+      res.json({ status: ` ${recordsProcessed} records out of ${records.length}`, records: recordsProcessed});
+  } catch (error) {
+      console.error('Error processing file:', error);
+      res.status(500).json({ status: 'Error processing file', error: error.message });
+  }
+});
 
 module.exports = router;
