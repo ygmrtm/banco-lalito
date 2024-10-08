@@ -1,6 +1,6 @@
 const express = require('express');
 const { sendToNotionMoonLog } = require('../controllers/notion');
-const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts, parseSpanishDate, executeCCProcess } = require('./core');
+const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts, parseSpanishDate, executeCCProcess, linkTheFinalAmount } = require('./core');
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const multer = require('multer');
@@ -63,6 +63,18 @@ router.post('/pendientes', async (req, res) => {
         if (markAsDone) markAsProcessed(pageBlgId);
       });
 
+      const todoistProcessed = [];
+      data.forEach((item) => {
+        const { πpol_to } = item.properties;
+        for (const todoist of πpol_to.multi_select) {
+          if (!todoistProcessed.includes(todoist.name)) {
+            linkTheFinalAmount(todoist.name);
+            todoistProcessed.push(todoist.name);
+          }else{
+            console.log("todoist already processed", todoist.name);
+          }
+        }
+      });
       
       res.json({ status: "Processed " + data.length + " pending transactions." });
     } catch (error) {

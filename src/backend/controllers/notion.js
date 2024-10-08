@@ -119,7 +119,8 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
               (monto < 0? '💸': '💰'):(currentDay % 4 == 2 ? 
                   (monto < 0? '📤': '📩'):(currentDay % 4 == 3 ? 
                       (monto < 0? '📉': '📈'):(monto < 0? '🕷️': '🕸️'))));
-  
+    //implemement wait for 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000));
     if(!externalIconURL)
       await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
       icon: {emoji: emoji},});
@@ -138,7 +139,8 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
    * @param monto_modif The modified financial amount to be updated on the page.
    * @returns A promise that resolves to the updated page object.
    */
-  async function updateNotionPage(databaseId, notionIdPeople, monto_fin, monto_modif) {
+  async function updateNotionPage(databaseId, notionIdPeople, monto_modif, monto_fin) {
+    let updated = null;
     try {
       const response = await notion.databases.query({
         database_id: databaseId,
@@ -155,7 +157,6 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
       const data = response.results;
       const pageid = data[0].id;
       let monto_ant = 0;
-      let updated = null;
   
       const fullPage = await notion.pages.retrieve({ page_id: pageid });
   
@@ -168,7 +169,7 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
         updated = await notion.pages.update({ page_id: pageid, properties: { monto_fin: { number: monto_fin } } });
       } else if (monto_modif !== 0) {
         updated = await notion.pages.update({ page_id: pageid, properties: { monto_modif: { number: monto_modif + monto_ant } } });
-      }
+      } 
   
     } catch (error) {
       console.error('Error updateNotionPage:', error); 
@@ -176,6 +177,11 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
       return updated;
     }
   }
-  
 
-module.exports = { sendToNotionMoonLog, addNotionPageToDatabase, updateNotionPage };
+  async function updateNotionMissmatch(notionId, monto_antes) {
+    console.log("updateNotionMissmatch 🔢 = ", notionId, monto_antes);
+    const updated = await notion.pages.update({ page_id: notionId, properties: { antes: { number: monto_antes } } });
+    return updated;
+  }
+
+module.exports = { sendToNotionMoonLog, addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch };

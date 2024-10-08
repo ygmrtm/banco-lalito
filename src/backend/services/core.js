@@ -1,5 +1,5 @@
 
-const { addNotionPageToDatabase, updateNotionPage } = require("../controllers/notion.js");
+const { addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch } = require("../controllers/notion.js");
 const { templateMail, sendFinancialReport } = require("./mail.js");
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -119,7 +119,7 @@ const dispersionNomina = async (monto, description) => {
         type: { select: { name: '(mov)imiento' } },
         πpol_to: { multi_select: [{ name: mainAccount }] }
       }
-      addNotionPageToDatabase(DATABASE_BAK_ID, properties, monto); //perfiles
+      await addNotionPageToDatabase(DATABASE_BAK_ID, properties, monto); //perfiles
       data.forEach((item) => {  
           const pq = item.properties.pq.number;
           const todoist = item.properties.todoist.rich_text[0].plain_text;
@@ -181,7 +181,7 @@ const mantenimiento = async (properties) => {
                   πpol_to: { multi_select: [{ name: todoist }] }
               };
             
-              addNotionPageToDatabase(DATABASE_BAK_ID, propertiesIns, ajuste);
+            addNotionPageToDatabase(DATABASE_BAK_ID, propertiesIns, ajuste);
             
               if (todoist.toLowerCase().includes("familia")) {
                   interesFamiliar(ajuste, todoist, description);
@@ -375,7 +375,7 @@ const sobrinas = async (monto, description, peopleFrom) => {
               type: { select: { name: '(mov)imiento' }},
               πpol_to: { multi_select: [{ name:  peopleFrom[0].name }]},
             };
-          addNotionPageToDatabase(DATABASE_BAK_ID, properties, monto * -1);   
+          await addNotionPageToDatabase(DATABASE_BAK_ID, properties, monto * -1);   
           
           const properties2 = {
             Name: { title: [{ text: { content: familyAccount }}] },
@@ -385,7 +385,7 @@ const sobrinas = async (monto, description, peopleFrom) => {
             πpol_to: { multi_select: [{ name:  familyAccount }]},
             πpol_from: { multi_select: [{ name:  mainAccount }]},
           };
-          addNotionPageToDatabase(DATABASE_BAK_ID, properties2, monto );   
+          await addNotionPageToDatabase(DATABASE_BAK_ID, properties2, monto );   
 
           let i = 1;
           data.forEach((item) => {  
@@ -449,25 +449,25 @@ const inversiones = async (proper) => {
               };
 
               properties.description.rich_text[0].text.content = `INI ${descriptionText}`;
-              addNotionPageToDatabase(DATABASE_BAK_ID, properties, -1);
+              await addNotionPageToDatabase(DATABASE_BAK_ID, properties, -1);
 
               properties.mto_to.number = mtoFinalValue;
               properties.when_user.date.start = fFin;
               properties.description.rich_text[0].text.content = `FIN ${descriptionText}`;
-              addNotionPageToDatabase(DATABASE_BAK_ID, properties, 1);
+              await addNotionPageToDatabase(DATABASE_BAK_ID, properties, 1);
 
               properties.Name.title[0].text.content = properties.πpol_to.multi_select[0].name = peopleTo[0].name;
               properties.mto_to.number = mtoFinalValue * -1;
-              addNotionPageToDatabase(DATABASE_BAK_ID, properties, -1);
+              await addNotionPageToDatabase(DATABASE_BAK_ID, properties, -1);
 
               properties.mto_to.number = mtoFinalValue - monto;
               properties.description.rich_text[0].text.content = `INT ${descriptionText}`;
-              addNotionPageToDatabase(DATABASE_BAK_ID, properties, 1);
+              await addNotionPageToDatabase(DATABASE_BAK_ID, properties, 1);
 
               properties.mto_to.number = monto;
               properties.when_user.date.start = fIni;
               properties.description.rich_text[0].text.content = `INI ${descriptionText}`;
-              addNotionPageToDatabase(DATABASE_BAK_ID, properties, 1);
+              await addNotionPageToDatabase(DATABASE_BAK_ID, properties, 1);
           }
       } catch (error) {
           console.error('Error inversiones:', error);
@@ -525,7 +525,7 @@ async function insertCetesPlazosDB(proper, description){
     //console.log(properTimeline);
     if (generaBloqueInversion)
       updateNotionPage(DATABASE_CET_ID, notionid, monto, 0);
-    addNotionPageToDatabase(DATABASE_CET_ID, properTimeline, 1, externalIconURL);
+    await addNotionPageToDatabase(DATABASE_CET_ID, properTimeline, 1, externalIconURL);
   } catch (error) {
     console.error('Error insertCetesPlazosDB:', error);
   }
@@ -540,35 +540,63 @@ async function insertCetesPlazosDB(proper, description){
  * @param to - The end date of the time range.
  * @returns An array of objects representing the retrieved movements, including concept, amount, final balance, color, and movement date.
  */
-async function getMovements(notionid, from, to) {
+async function getMovements(notionid,todoist, from, to) {
   console.log(`== getMovements for ${notionid} [${from.toISOString().slice(0, 10)},${to.toISOString().slice(0, 10)}] ==`);
-  
-  try {
-    const response = await notion.databases.query({  
-      database_id: DATABASE_MVN_ID,
-      filter: {
-        "and": [
-          { property: 'πpol', relation: { contains: notionid } },
-          { property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
-          { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }
-        ]
-      }, 
-      sorts: [{ property: 'mvmnt_date', direction: 'descending' }]
-    });
-    console.log("getMovements 🔢 = ", response.results.length, notionid);
-    const data = response.results || [];
-    const returnArray = [];
-    data.forEach((item) => {
-      returnArray.push({
-        concept: item.properties.concept.rich_text[0].plain_text,
-        monto: item.properties.monto.number,
-        despues: item.properties.despues.formula.number,
-        color: item.properties.color.formula.string,
-        mvmnt_date: item.properties.mvmnt_date.formula.date.start.slice(0, 10)
-      });
-    });
-    
-    return returnArray;
+  let nextCursor = null;
+  const returnArray = [];
+    try {
+        do{
+            let response;
+            if (notionid && !nextCursor){
+                response = await notion.databases.query({  
+                database_id: DATABASE_MVN_ID,
+                filter: {"and": [{ property: 'πpol', relation: { contains: notionid } },
+                    { property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
+                    { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
+                sorts: [{ property: 'mvmnt_date', direction: 'descending' }]
+                });
+            }else if(notionid && nextCursor !== ''){
+                response = await notion.databases.query({  
+                    database_id: DATABASE_MVN_ID,
+                    start_cursor: nextCursor,
+                    filter: {"and": [{ property: 'πpol', relation: { contains: notionid } },
+                        { property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
+                        { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
+                    sorts: [{ property: 'mvmnt_date', direction: 'descending' }]
+                    });
+            }else if(!nextCursor){
+                response = await notion.databases.query({  
+                database_id: DATABASE_MVN_ID,
+                filter: {"and": [{ property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
+                        { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
+                sorts: [{ property: 'created time', direction: 'ascending' }]
+                });
+            } else {
+                response = await notion.databases.query({  
+                database_id: DATABASE_MVN_ID,
+                start_cursor: nextCursor,
+                filter: {"and": [{ property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
+                        { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
+                sorts: [{ property: 'created time', direction: 'ascending' }]
+                });
+            }
+            console.log("getMovements 🔢 = ", response.results.length, notionid);
+            const data = response.results || [];
+            data.forEach((item) => {
+              returnArray.push({
+                concept: item.properties.concept.rich_text[0].plain_text,
+                monto: item.properties.monto.number,
+                despues: item.properties.despues.formula.number,
+                color: item.properties.color.formula.string,
+                mvmnt_date: item.properties.mvmnt_date.formula.date.start.slice(0, 10),
+                todoist: item.properties.todoist.rollup.array[0].rich_text[0].plain_text,
+                notionid: item.id,
+                antes: item.properties.antes.number
+                });
+            });
+            nextCursor = response.next_cursor;
+        }while(nextCursor);
+        return returnArray;
   } catch (error) {
     console.error('Error getMovements:', error);
     return []; 
@@ -650,7 +678,7 @@ const executeLastMvmnts = async (days, todoistToLook) => {
       from.setDate(from.getDate() - days);
       const from30 = new Date();
       from30.setDate(from30.getDate() - 30);
-      const mvmnts = await getMovements(notionid, from, new Date());
+      const mvmnts = await getMovements(notionid, todoist, from, new Date());
       let sumMovUltimos30Dias = 0;
       let promedioBalance = 0, total = 0;
       let sumIngresos = 0, sumEgresos = 0, sumIntereses = 0;
@@ -709,10 +737,12 @@ async function getUltimoPago(todoistToLook, notionid) {
   }    
   return [ultimoPago, ultimoPagoDias];
 }
+
 const spanishToEnglishMonths = {
     "ene": "Jan", "feb": "Feb", "mar": "Mar", "abr": "Apr", "may": "May", "jun": "Jun",
     "jul": "Jul", "ago": "Aug", "sep": "Sep", "oct": "Oct", "nov": "Nov", "dic": "Dec"
  };
+
   
 function parseSpanishDate(dateString) {
     const [day, month, year] = dateString.split(' ');
@@ -768,7 +798,7 @@ const executeCCProcess = async (cleanedData) => {
     };
     const nonMatchingRecords = getNonMatchingKeys(cleanedData, fromNotion);
     let recordsProcessed = 0;
-    nonMatchingRecords.forEach((row) => {
+    nonMatchingRecords.forEach(async (row) => {
       if (row.compras) {
         const properties = {
           Name: { title: [{ text: { content: 'cc'.concat(':', mainAccount) } }] },
@@ -778,14 +808,14 @@ const executeCCProcess = async (cleanedData) => {
           πpol_to: { multi_select: [{ name: mainAccount }] },
           pending: { checkbox: true }
         }
-        addNotionPageToDatabase(DATABASE_BAK_ID, properties, -1);
+        await addNotionPageToDatabase(DATABASE_BAK_ID, properties, -1);
         const properties2 = {
           Name: { title: [{ text: { content: getRandomKey('credito', Math.trunc(row.compras)) } }] },
           description: { rich_text: [{ text: { content: row.description.trim() } }] },
           monto: { number: (row.compras * -1) },
           when: { date: { start: row.fecha } }
         };
-        addNotionPageToDatabase(DATABASE_CC_ID, properties2, -1);
+        await addNotionPageToDatabase(DATABASE_CC_ID, properties2, -1);
         recordsProcessed++;
       }
     });
@@ -796,6 +826,35 @@ const executeCCProcess = async (cleanedData) => {
   }
 };
   
+
+async function linkTheFinalAmount(todoist) {
+    console.log(`== Running movement link to the final amount == ${todoist}`);
+    let antes = 0;  
+    try {
+      const from15 = new Date();
+      from15.setDate(from15.getDate() - 8);  
+      const movements =  await getMovements(null, todoist, from15, new Date());
+      for (const movement of movements) {
+        const { todoist:todoistMovement, notionid, mvmnt_date, monto:montoMovement } = movement;
+        let {antes:antesMovement} = movement;
+        if (todoist === todoistMovement) {
+          if(antes !== 0 && antesMovement != antes){
+            await updateNotionMissmatch(notionid,antes);
+            antesMovement = antes;
+          }
+          antes = antesMovement + montoMovement;
+        }
+      }
+    } catch (error) {
+      console.error('Error linkTheFinalAmount:', error);
+    }
+    return true;
+  }
+
+
+
+
 module.exports = { movimiento, mantenimiento, dispersionNomina
     , inversiones, sobrinas, markAsProcessed, executeLastMvmnts
-    , executeCCProcess, getRandomKey, getDaysBetweenDates, parseSpanishDate };
+    , executeCCProcess, getRandomKey, getDaysBetweenDates
+    , parseSpanishDate, linkTheFinalAmount };
