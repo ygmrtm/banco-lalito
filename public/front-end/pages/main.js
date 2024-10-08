@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const todoistInput = document.getElementById('todoist-input');
     const dragDropArea = document.getElementById('drag-drop-area');
     const processXlsxBtn = document.getElementById('process-xlsx-btn');
+    const todoistBtn = document.getElementById('todoist-btn');
+    const experimentalTitle = document.getElementById('experimental-title');
+    const experimentalContainer = document.getElementById('experimental-container');
     let selectedFile = null;
 
         // Fetch user info from the server
@@ -158,33 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    /**
-     * this to implement later
-     */
-    // add event listener to notion button
-    notionBtn.addEventListener('click', async () => {
-        notionBtn.disabled = true; // Disable the button during the operation
-        banner.style.display = 'block';
-        banner.textContent = 'Checking Notion connection...';
-        
-        try {
-            const response = await fetch('/api/health-check', { method: 'GET' });
-            if (response.ok) {
-                const result = await response.json();
-                banner.textContent = `Status: ${result.status}`; // Display the response message
-            } else {
-                banner.textContent = 'Error checking connection. Please try again.';
-            }
-        } catch (error) {
-            banner.textContent = 'An error occurred while checking connection.';
-            console.error('Error:', error);
-        } finally {
-            setTimeout(() => {
-                banner.style.display = 'none';
-                notionBtn.disabled = false; // Re-enable the button after processing
-            }, 3000);
-        }
-    });
+
 
     // Open file dialog when clicking the drag-drop area
     dragDropArea.addEventListener('click', () => {
@@ -246,5 +223,102 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error:', error);
             alert('An error occurred while processing the file.');
         }
+    });
+
+    
+    // Add event listener to the Todoist button
+    todoistBtn.addEventListener('click', async () => {
+        todoistBtn.disabled = true; // Disable the button during the operation
+        banner.style.display = 'block';
+        banner.textContent = 'Checking Todoist connection...';
+    
+        try {
+            const response = await fetch('/todoist/process', { method: 'GET' });
+            if (response.ok) {
+                const result = await response.json();
+                banner.textContent = `Status: ${result.status}`; // Display the response message
+            } else {
+                banner.textContent = 'Error checking connection. Please try again.';
+            }
+        } catch (error) {
+            banner.textContent = 'An error occurred while checking connection.';
+            console.error('Error:', error);
+        } finally {
+            setTimeout(() => {
+                banner.style.display = 'none';
+                todoistBtn.disabled = false; // Re-enable the button after processing
+            }, 3000);
+        }
+    });    
+
+    /**
+     * this to implement later
+     */
+    // add event listener to notion button
+    notionBtn.addEventListener('click', async () => {
+        notionBtn.disabled = true; // Disable the button during the operation
+        banner.style.display = 'block';
+        banner.textContent = 'Checking Notion connection...';
+        
+        try {
+            const response = await fetch('/notion/health-check', { method: 'GET' });
+            if (response.ok) {
+                const result = await response.json();
+                banner.textContent = `Status: ${result.status}`; // Display the response message
+            } else {
+                banner.textContent = 'Error checking connection. Please try again.';
+            }
+        } catch (error) {
+            banner.textContent = 'An error occurred while checking connection.';
+            console.error('Error:', error);
+        } finally {
+            setTimeout(() => {
+                banner.style.display = 'none';
+                notionBtn.disabled = false; // Re-enable the button after processing
+            }, 3000);
+        }
+    });    
+
+// Function to perform health checks for Todoist and Notion
+async function performHealthChecks() {
+    try {
+        const todoistResponse = await fetch('/todoist/health-check', { method: 'GET' });
+        if (!todoistResponse.ok) {
+            throw new Error('Error checking Todoist connection');
+        }
+        const todoistResult = await todoistResponse.json();
+        document.getElementById('todoist-btn').disabled = false;
+        const notionResponse = await fetch('/notion/health-check', { method: 'GET' });
+        if (!notionResponse.ok) {
+            throw new Error('Error checking Notion connection');
+        }
+        const notionResult = await notionResponse.json();
+        document.getElementById('notion-btn').disabled = false;
+        // Display combined results
+        banner.textContent = `${todoistResult.status} ${notionResult.status}`;
+    } catch (error) {
+        banner.textContent = error.message; // Display specific error message
+    } finally {
+        setTimeout(() => {
+            banner.style.display = 'none';
+        }, 3000);
+    }
+}
+
+// Add event listener to experimental title
+experimentalTitle.addEventListener('click', () => {
+
+    if (experimentalContainer.style.display === 'none') {
+        experimentalContainer.style.display = 'block';
+        experimentalTitle.textContent = 'Hide Experimental .Ø_Ø.';
+        banner.style.display = 'block';
+        banner.textContent = 'Performing health check...';
+        performHealthChecks(); // Call the health check function
+    } else {
+        experimentalContainer.style.display = 'none';
+        experimentalTitle.textContent = 'Show Experimental .Ø_Ø.';
+    }
+    
+
     });
 });

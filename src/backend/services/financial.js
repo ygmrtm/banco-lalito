@@ -126,17 +126,7 @@ router.post('/pendientes', async (req, res) => {
     }
 });
 
-router.get('/health-check', async (req, res) => {
-  try {
-    let responseString = ''
-    const response = await notion.databases.query({database_id: process.env.DATABASE_BAK_ID});
-    responseString = responseString.concat('Notion connection [✅]');
-    res.json({ status: responseString });
-  } catch (error) {
-      console.error('Health check error:', error);
-      res.status(500).json({ status: 'Health check error', error: error.message });
-  }
-});
+
 
 router.post('/estadisticas', async (req, res) => {
   console.log(`== Executing general Balance`);

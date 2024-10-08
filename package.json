@@ -23,6 +23,7 @@
   "author": "ygmrtm",
   "license": "ISC",
   "dependencies": {
+    "@doist/todoist-api-typescript": "^3.0.3",
     "@notionhq/client": "^2.2.15",
     "@sendgrid/mail": "^8.1.3",
     "dotenv": "^16.4.5",
