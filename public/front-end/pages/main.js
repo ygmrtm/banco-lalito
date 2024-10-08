@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 banner.style.display = 'none';
             pendientesBtn.disabled = false; // Re-enable the button after processing
             }, 3000);
+            window.location.reload();
         }
     });
 
@@ -114,6 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
             banner.textContent = 'Please enter a valid number of days.';
             return;
         }
+        // Check if todoist is "all" and alert the user
+        if (todoist === 'all') {
+            const confirmSendToAll = confirm('No specific Todoist identifier provided. Emails will be sent to ALL. Do you want to proceed?');
+            if (!confirmSendToAll) {
+                return; // Cancel the operation if the user does not confirm
+            }
+        }        
 
         mandarCorreosBtn.disabled = true; // Disable the button during the operation
         banner.style.display = 'block';
