@@ -1,9 +1,47 @@
 const { Client } = require('@notionhq/client');
+const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
 
+const router = express.Router();
+
+// Middleware function
+const myMiddleware = (req, res, next) => {
+    console.log('Middleware executed');
+    next(); // Pass control to the next middleware
+};
+
+// Use middleware
+router.use(myMiddleware);
+
 let notion = null;
-const currentDate = new Date().toISOString().slice(0, 10);
+
+router.get('/health-check', async (req, res) => {
+    try {
+        notion = await initializeNotion();
+        const response = await notion.databases.query({
+            database_id: process.env.DATABASE_CET_ID,
+            filter: {
+                property: 'done',
+                checkbox: { equals: false }
+            }
+        });
+        
+        let responseString = '';
+        if (response.results.length > 0) {
+            responseString = responseString.concat('| ', 'Notion connection [✅]');
+        } else {
+            responseString = responseString.concat('| ', 'Notion connection [❌]');
+        }
+      
+        res.json({ status: responseString });
+    } catch (error) {
+        console.error('Health check error:', error); // Log the error for debugging
+        res.status(500).json({ status: 'Health check error', error: error.message });
+    }
+});
+
+
 
 async function createNotionClient() {
     if (!process.env.NOTION_TOKEN) {
@@ -184,4 +222,6 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
     return updated;
   }
 
-module.exports = { sendToNotionMoonLog, addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch };
+
+
+module.exports = { sendToNotionMoonLog, addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch, router };
