@@ -278,7 +278,8 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
           const current = item.properties.current$.formula.number;
           const notionid = item.id;
           const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
-          const properties = {
+          const type = item.properties.type.select.name;
+          let properties = {
             name: { title: [{ text: { content: transactionKey } }] },
             concept: { rich_text: [{ text: { content: description } }] },
             antes: { number: current },
@@ -290,6 +291,19 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
           addNotionPageToDatabase(DATABASE_MVN_ID, properties, monto);
           if (generaBloqueInversion)
             updateNotionPage(DATABASE_CET_ID, notionid, 0,monto);  
+          if(type === "A"){
+            const propertiesBAK = {
+                Name: { title: [{ text: { content: transactionKey } }] },
+                description: { rich_text: [{ text: { content: description } }] },
+                mto_to: { number: monto },
+                type: { select: { name: '(mov)imiento' } },
+                πpol_to: { multi_select: [{ name: familyAccount }] },
+                πpol_from: { multi_select: [{ name: mainAccount }] },
+                pending: { checkbox: true }
+              }
+              addNotionPageToDatabase(DATABASE_BAK_ID, propertiesBAK, monto);
+          }
+
         });
         totalForFrom += monto;
         stringOfTo = stringOfTo + '🚻 '+ todoist;

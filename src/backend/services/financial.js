@@ -63,17 +63,29 @@ router.post('/pendientes', async (req, res) => {
         if (markAsDone) markAsProcessed(pageBlgId);
       });
 
-      const todoistProcessed = [];
-      data.forEach((item) => {
-        const { πpol_to } = item.properties;
-        for (const todoist of πpol_to.multi_select) {
-          if (!todoistProcessed.includes(todoist.name)) {
-            linkTheFinalAmount(todoist.name);
-            todoistProcessed.push(todoist.name);
-          }else{
-            console.log("todoist already processed", todoist.name);
+      const todoistProcessed = new Set(); // Use a Set for processed todoists
+
+      data.forEach(async (item) => {
+          const { πpol_to } = item.properties;
+          const promises = []; // Array to hold promises for concurrent processing
+      
+          for (const todoist of πpol_to.multi_select) {
+              if (!todoistProcessed.has(todoist.name)) {
+                  const todoistName = todoist.name; // Store the name for later use
+                  const promise = await linkTheFinalAmount(todoistName)
+                      .then(() => {
+                          todoistProcessed.add(todoistName); // Add to Set after successful processing
+                      })
+                      .catch((error) => {
+                          console.error("Error processing todoist:", todoistName, error);
+                      });
+                  promises.push(promise); // Add the promise to the array
+              } else {
+                  console.log("todoist already processed", todoist.name);
+              }
           }
-        }
+          // Wait for all promises to resolve
+          await Promise.all(promises);
       });
       
       res.json({ status: "Processed " + data.length + " pending transactions." });
