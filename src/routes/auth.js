@@ -43,7 +43,7 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   function(req, res) {
     // Successful authentication, redirect to main dashboard.
-    console.log("User authenticated in auth.js:", req.user);
+    // console.log("User authenticated in auth.js:", req.user);
     req.session.userName = req.user._json.name;
     req.session.userEmail = req.user._json.email;
     req.session.userIcon = req.user._json.picture;

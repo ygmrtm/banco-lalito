@@ -15,6 +15,35 @@ if (!process.env.NOTION_TOKEN || !process.env.DATABASE_PPL_ID || !process.env.DA
     throw new Error('Missing required environment variables for authentication.');
 }
 
+// API endpoint for getting pending transactions
+router.get('/get-pendientes', async (req, res) => {
+  const formattedDate = new Date().toISOString().slice(0, 10);
+  console.log("get-pendientes:", formattedDate);
+    try {
+      const response = await notion.databases.query({
+        database_id: process.env.DATABASE_BAK_ID,
+        filter: {
+          and: [
+            { property: "processed", checkbox: { equals: false } },
+            { property: "when_final", formula: { date: { on_or_before: formattedDate } } },
+          ],
+        },
+      });
+      let toProcess = 0, nonToProcess = 0;
+      const data = response.results;
+      data.forEach((item) => {
+        if (item.properties.pending.checkbox) nonToProcess++;
+        else toProcess++;
+      });
+      res.json({ status: "Pendientes(" + toProcess + ")".concat(nonToProcess > 0 ? ":[" + nonToProcess + "]" : "") });
+    } catch (error) {
+      console.error("Error get-pendientes:", error);    
+      res.status(500).json({ status: "Error get-pendientes", error: error.message });
+    }
+});
+
+
+
 // API endpoint for processing pending transactions
 router.post('/pendientes', async (req, res) => {
   const formattedDate = new Date().toISOString().slice(0, 10);

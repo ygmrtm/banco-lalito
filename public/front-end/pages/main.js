@@ -29,14 +29,26 @@ document.addEventListener('DOMContentLoaded', () => {
     (async function() {
         try {
             const response = await fetch('/auth/user');
-            if (response.ok) {
+            if (response.ok && response.status === 200) {
                 const userInfo = await response.json();
                 // Update the user name and icon in the UI
                 document.getElementById('user-name').innerHTML = `<span>${userInfo.userName}</span>`;
-                document.getElementById('user-icon').src = userInfo.userIcon; // Update the user icon
+                document.getElementById('user-icon').src = userInfo.userIcon;
+                // get pending transactions
+                const pendingTransactions = await fetch('/api/get-pendientes', { method: 'GET' });
+                if (pendingTransactions.ok) {
+                    const result = await pendingTransactions.json();
+                    console.log('Pending transactions:', result.status);
+                    pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendientes"> ${result.status}`;
+                } else {
+                    console.error('Error fetching pending transactions.');
+                }
             } else {
-                console.error('User not authenticated');
-                window.location.href = '/'; // Redirect to home or login page after logout
+                console.error('User not authenticated', response.status);
+                document.getElementById('user-name').innerHTML = `<span>User not authenticated</span>`;
+                document.getElementById('user-icon').src = '../images/user-icon.png';
+                pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendientes"> Pendientes(0)`;
+                window.location.href = '/';
             }
         } catch (error) {
             console.error('Error fetching user info:', error);
