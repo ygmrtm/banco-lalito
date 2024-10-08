@@ -59,7 +59,7 @@
       width: 80%;
       max-width: 800px;
       box-shadow: 5px 10px 20px rgba(0, 0, 0, 0.1);
-
+      overflow: hidden;
   }
   .dashboard {
     background-color: white;
@@ -178,4 +178,34 @@
 
   .back {
       transform: rotateY(180deg);
-  }          
+  }      
+  
+  
+  .collapsible {
+    cursor: pointer;
+    padding: 10px;
+    /*background-color: #f1f1f1;*/
+    border: 0px solid #ccc;
+    margin: 5px 0;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.collapsible:hover {
+    background-color: #e0e0e0;
+}
+
+.contentCollapsible {
+    max-height: 0;
+    overflow:hidden;
+    transition: max-height 0.3s ease-out;
+    padding: 0 10px;
+    border: 0px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 0px;
+}
+
+.contentCollapsible.show {
+    max-height: 550px; /* Adjust this value based on your content */
+    padding: 10px;
+}  
