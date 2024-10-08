@@ -155,4 +155,27 @@
       text-shadow:  -0.5px -0.5px 0px rgba(0, 0, 0, 0.9);
     }
  
-          
+    /* Add styles for the flip animation */
+  .flip-container {
+      perspective: 1000px;
+      display: inline-block;
+  }
+
+  .flipper {
+      position: relative;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+  }
+
+  .flip-container:hover .flipper {
+      transform: rotateY(180deg);
+  }
+
+  .front .back {
+      position: absolute;
+      backface-visibility: hidden;
+  }
+
+  .back {
+      transform: rotateY(180deg);
+  }          

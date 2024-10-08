@@ -25,6 +25,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const processXlsxBtn = document.getElementById('process-xlsx-btn');
     let selectedFile = null;
 
+        // Fetch user info from the server
+    (async function() {
+        try {
+            const response = await fetch('/auth/user');
+            if (response.ok) {
+                const userInfo = await response.json();
+                // Update the user name and icon in the UI
+                document.getElementById('user-name').innerHTML = `<span>${userInfo.userName}</span>`;
+                document.getElementById('user-icon').src = userInfo.userIcon; // Update the user icon
+            } else {
+                console.error('User not authenticated');
+                window.location.href = '/'; // Redirect to home or login page after logout
+            }
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+        }
+    })();
 
     pendientesBtn.addEventListener('click', async () => { // add event listener to pendientes button
         pendientesBtn.disabled = true; // Disable the button during the operation

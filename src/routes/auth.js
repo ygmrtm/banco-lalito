@@ -43,8 +43,32 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   function(req, res) {
     // Successful authentication, redirect to main dashboard.
+    console.log("User authenticated in auth.js:", req.user);
+    req.session.userName = req.user._json.name;
+    req.session.userEmail = req.user._json.email;
+    req.session.userIcon = req.user._json.picture;
     res.redirect('/pages/main.html');
   }
 );
+
+// Route to get user info from session
+router.get('/auth/user', function(req, res) {
+  if (req.isAuthenticated()) {
+    res.json({
+      userName: req.session.userName,
+      userEmail: req.session.userEmail,
+      userIcon: req.session.userIcon
+    });
+  } else {
+    res.status(401).json({ message: 'User not authenticated' });
+  }
+});
+
+router.get('/auth/logout', function(req, res) {
+  req.logout(function(err) {
+      if (err) { return next(err); }
+      res.redirect('/'); // Redirect to home or login page after logout
+  });
+});
 
 module.exports = router;

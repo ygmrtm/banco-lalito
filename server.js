@@ -33,21 +33,6 @@ app.use(passport.session());
 app.use(authRoutes); // Add this line to use your auth routes
 // Use the financial routes// Use the financial routes
 app.use('/api', financialRoutes); // Prefix the financial routes with /api
-// API endpoint for processing pending transactions
-
-// Google Authentication Route
-app.get('/auth/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
-
-// Callback route after Google has authenticated
-app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    // Successful authentication, redirect to the desired page.
-    res.redirect('/'); // Redirect to the landing page or wherever you want
-  }
-);
 
 // Route for serving the main HTML page
 app.get('/', (req, res) => {
