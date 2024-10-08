@@ -35,7 +35,9 @@ router.get('/get-pendientes', async (req, res) => {
         if (item.properties.pending.checkbox) nonToProcess++;
         else toProcess++;
       });
-      res.json({ status: "Pendientes(" + toProcess + ")".concat(nonToProcess > 0 ? ":[" + nonToProcess + "]" : "") });
+      res.json({ status: "Pendientes(" + toProcess + ")".concat(nonToProcess > 0 ? ":[" + nonToProcess + "]" : "") 
+        ,total: toProcess + nonToProcess
+      });
     } catch (error) {
       console.error("Error get-pendientes:", error);    
       res.status(500).json({ status: "Error get-pendientes", error: error.message });

@@ -38,8 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pendingTransactions = await fetch('/api/get-pendientes', { method: 'GET' });
                 if (pendingTransactions.ok) {
                     const result = await pendingTransactions.json();
+                    const total = result.total;
                     console.log('Pending transactions:', result.status);
                     pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendientes"> ${result.status}`;
+                    if (total > 0) {
+                        document.getElementById('financial-dashboard-container').classList.add('show');
+                    }
                 } else {
                     console.error('Error fetching pending transactions.');
                 }
