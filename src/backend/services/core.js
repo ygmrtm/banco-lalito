@@ -2,6 +2,7 @@
 const { addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch } = require("../controllers/notion.js");
 const { templateMail, sendFinancialReport } = require("./mail.js");
 const { Client } = require('@notionhq/client');
+
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const dotenv = require('dotenv');
 dotenv.config();
@@ -531,7 +532,7 @@ async function insertCetesPlazosDB(proper, description){
   }
 }
 
-
+const movementsCache = {}; // Initialize an in-memory cache
 /**
  * Retrieves movements from a database within a specified time range for a given notion ID.
  * 
@@ -541,62 +542,69 @@ async function insertCetesPlazosDB(proper, description){
  * @returns An array of objects representing the retrieved movements, including concept, amount, final balance, color, and movement date.
  */
 async function getMovements(notionid,todoist, from, to) {
-  console.log(`== getMovements for ${notionid} [${from.toISOString().slice(0, 10)},${to.toISOString().slice(0, 10)}] ==`);
+  const cacheKey = `${todoist}-${from.toISOString().slice(0, 10)}-${to.toISOString().slice(0, 10)}`;
+  if (movementsCache[cacheKey]) {
+    console.log(`== getMovements for ${cacheKey} (cached) ==`);
+    return movementsCache[cacheKey];
+  }
+  console.log(`== getMovements for ${notionid} | ${cacheKey} ==`);
   let nextCursor = null;
   const returnArray = [];
-    try {
-        do{
-            let response;
-            if (notionid && !nextCursor){
-                response = await notion.databases.query({  
-                database_id: DATABASE_MVN_ID,
-                filter: {"and": [{ property: 'πpol', relation: { contains: notionid } },
+  try {
+    do {
+      let response;
+      if (notionid && !nextCursor){
+        response = await notion.databases.query({  
+        database_id: DATABASE_MVN_ID,
+        filter: {"and": [{ property: 'πpol', relation: { contains: notionid } },
                     { property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
                     { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
                 sorts: [{ property: 'mvmnt_date', direction: 'descending' }]
                 });
-            }else if(notionid && nextCursor !== ''){
-                response = await notion.databases.query({  
+      }else if(notionid && nextCursor !== ''){
+        response = await notion.databases.query({  
                     database_id: DATABASE_MVN_ID,
                     start_cursor: nextCursor,
                     filter: {"and": [{ property: 'πpol', relation: { contains: notionid } },
                         { property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
                         { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
                     sorts: [{ property: 'mvmnt_date', direction: 'descending' }]
-                    });
-            }else if(!nextCursor){
-                response = await notion.databases.query({  
-                database_id: DATABASE_MVN_ID,
-                filter: {"and": [{ property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
-                        { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
-                sorts: [{ property: 'created time', direction: 'ascending' }]
                 });
-            } else {
-                response = await notion.databases.query({  
-                database_id: DATABASE_MVN_ID,
-                start_cursor: nextCursor,
-                filter: {"and": [{ property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
-                        { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
-                sorts: [{ property: 'created time', direction: 'ascending' }]
-                });
-            }
-            console.log("getMovements 🔢 = ", response.results.length, notionid);
-            const data = response.results || [];
-            data.forEach((item) => {
-              returnArray.push({
-                concept: item.properties.concept.rich_text[0].plain_text,
-                monto: item.properties.monto.number,
-                despues: item.properties.despues.formula.number,
-                color: item.properties.color.formula.string,
-                mvmnt_date: item.properties.mvmnt_date.formula.date.start.slice(0, 10),
-                todoist: item.properties.todoist.rollup.array[0].rich_text[0].plain_text,
-                notionid: item.id,
-                antes: item.properties.antes.number
-                });
+        }else if(!nextCursor){
+            response = await notion.databases.query({  
+            database_id: DATABASE_MVN_ID,
+            filter: {"and": [{ property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
+                    { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
+            sorts: [{ property: 'created time', direction: 'ascending' }]
             });
-            nextCursor = response.next_cursor;
-        }while(nextCursor);
-        return returnArray;
+        } else {
+            response = await notion.databases.query({  
+            database_id: DATABASE_MVN_ID,
+            start_cursor: nextCursor,
+            filter: {"and": [{ property: 'mvmnt_date', formula: { date: { on_or_after: from.toISOString().slice(0, 10) } } },
+                    { property: 'mvmnt_date', formula: { date: { on_or_before: to.toISOString().slice(0, 10) } } }]}, 
+            sorts: [{ property: 'created time', direction: 'ascending' }]
+            });
+        }
+        console.log("getMovements 🔢 = ", response.results.length, cacheKey);
+        const data = response.results || [];
+        data.forEach((item) => {
+            returnArray.push({
+            concept: item.properties.concept.rich_text[0].plain_text,
+            monto: item.properties.monto.number,
+            despues: item.properties.despues.formula.number,
+            color: item.properties.color.formula.string,
+            mvmnt_date: item.properties.mvmnt_date.formula.date.start.slice(0, 10),
+            todoist: item.properties.todoist.rollup.array[0].rich_text[0].plain_text,
+            notionid: item.id,
+            antes: item.properties.antes.number
+            });
+        });
+      nextCursor = response.next_cursor;
+    }while(nextCursor);
+    // Cache the result
+    movementsCache[cacheKey] = returnArray;
+    return returnArray;
   } catch (error) {
     console.error('Error getMovements:', error);
     return []; 
@@ -723,7 +731,7 @@ async function getUltimoPago(todoistToLook, notionid) {
   try {
     const from365 = new Date();
     from365.setDate(from365.getDate() - 365);  
-    const movements =  await getMovements(notionid, from365, new Date());
+    const movements =  await getMovements(notionid, todoistToLook, from365, new Date());
     let gotIt = false;
     for (const movement of movements) {
       if (!gotIt && movement.monto > 0) {
@@ -831,11 +839,11 @@ async function linkTheFinalAmount(todoist) {
     console.log(`== Running movement link to the final amount == ${todoist}`);
     let antes = 0;  
     try {
-      const from15 = new Date();
-      from15.setDate(from15.getDate() - 8);  
-      const movements =  await getMovements(null, todoist, from15, new Date());
+      const from8 = new Date();
+      from8.setDate(from8.getDate() - 8);  
+      const movements =  await getMovements(null, todoist, from8, new Date());
       for (const movement of movements) {
-        const { todoist:todoistMovement, notionid, mvmnt_date, monto:montoMovement } = movement;
+        const { todoist:todoistMovement, notionid, monto:montoMovement } = movement;
         let {antes:antesMovement} = movement;
         if (todoist === todoistMovement) {
           if(antes !== 0 && antesMovement != antes){
