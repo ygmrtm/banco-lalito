@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+  <title>Banco Lalito 🍂 Landing Page</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <style>
+    /* Basic styling for the splash screen */
+    body, html {
+      margin: 0;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+
+    #logo {
+      max-width: 200px;
+      transition: filter 1s ease-in-out;
+    }
+
+    /* Blur effect */
+    .blur {
+      filter: blur(10px);
+    }
+  </style>
+</head>
+<body>
+  <img id="logo" src="images/bank-logo.png" alt="Banco Lalito Logo">
+  <script>
+    // Wait for 1 seconds, then blur and redirect to the login page
+    setTimeout(() => {
+      const logo = document.getElementById('logo');
+      logo.classList.add('blur');
+      setTimeout(() => {
+        window.location.href = 'pages/login.html';
+      }, 1000);  // Wait for the blur effect to finish
+    }, 1000);
+  </script>
+</body>
+</html>

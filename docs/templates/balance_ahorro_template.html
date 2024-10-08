@@ -1,0 +1,40 @@
+<p style="text-align: center;"><img src="{{headerImage}}" alt="👁️‍🗨️" width="60" height="70" /></p>
+<hr />
+<blockquote>
+<p style="text-align: right;"><em>{{quote}}</em></p>
+</blockquote>
+<p>Querid@, respetable y admirable <strong>{{aka}}</strong>, reconocido ente viajero de este 🌎 surreal, en este {{currentYear}} la inexistente pero siempre presente Instituci&oacute;n Financiera <strong>Banco Lalito</strong>&reg;, le agradece su preferencia reflejada en las <em>{{total_movements}}</em> transacciones que ha realizado con nosotros durante un largo, y fructuoso tiempo de <em>{{daysOfMvmnts}}</em> d&iacute;as.&nbsp;</p>
+<hr />
+<p style="text-align: center;"><strong>Detalle mensual</strong></p>
+<p style="text-align: center;">🗓️<em>{{from}}</em> al <em>{{to}}</em></p>
+<ul>
+<li>Su saldo actual es de <strong>{{current}} mx 🇲🇽</strong></li>
+<li>Abonado/Retirado&nbsp; <strong><strong>{{sumMovUltimos30Dias}} </strong></strong>en este &uacute;ltimo periodo.
+<ul>
+<li>Ingresos : <span style="color: #808000;">{{sumIngresos}}</span></li>
+<li>Egresos : <span style="color: #800000;">{{sumEgresos}}</span></li>
+<li>Intereses <span style="color: #003366;">{{sumIntereses}}</span>, equivale al <strong>{{porcentajeAnual}}</strong> mensual.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<p style="text-align: center;">Detallle de los &uacute;ltimos <strong><em>{{days}} d&iacute;as</em></strong> de movimientos</p>
+<p style="text-align: center;"><em>(del mas reciente al mas antiguo)</em></p>
+<p style="text-align: center;">Balance promedio: <strong>{{promedioBalance}}</strong></p>
+<table style="margin-left: auto; margin-right: auto;" border="2" cellspacing="1" cellpadding="1">
+<thead>
+<tr>
+<th scope="col"><span style="font-family:Courier New,Courier,monospace"><strong>Fecha</strong></span></th>
+<th scope="col"><span style="font-family:Courier New,Courier,monospace"><strong>Monto</strong></span></th>
+<th scope="col"><span style="font-family:Courier New,Courier,monospace"><strong>Final</strong></span></th>
+<th scope="col"><span style="font-family:Courier New,Courier,monospace"><strong>Concepto</strong></span></th>
+</tr>
+</thead>
+<tbody>
+{{transacciones}}
+</tbody>
+</table>
+<hr />
+<p><img style="display: block; margin-left: auto; margin-right: auto;" src="{{iconUrl}}" alt="" width="30" height="30" /></p>
+<p style="text-align: center;"><span style="color: #999999;"><em>{{porcPart}}</em></span></p>
+{{coupon}}
