@@ -1,6 +1,6 @@
 {
   "name": "banco-lalito",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Operational dashboard for manual process execution in a bank",
   "main": "server.js",
   "directories": {
