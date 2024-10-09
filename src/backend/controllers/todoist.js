@@ -37,23 +37,25 @@ router.get('/health-check', async (req, res) => {
     }
 });
 
-router.get('/process', async (req, res) => {
+router.get('/get-pending', async (req, res) => {
     try {
-      console.log("health-check executed");
-      const response = await fetch('https://api.todoist.com/rest/v2/projects', {
+      console.log("get-pending executed");
+      const url = new URL('https://api.todoist.com/rest/v2/tasks');
+      url.searchParams.append('filter', '(today | overdue | tomorrow)');
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${process.env.TODOIST_API_TOKEN}` // Replace with your actual API token
-          }
-        });
-
-        if (response.ok) {
-            const projects = await response.json();
-            res.json({ status: 'Todoist connection successful!', projects: projects.length });
-        } else {
-            res.status(500).json({ status: 'Error checking Todoist connection', error: 'Failed to fetch projects' });
+          'Authorization': `Bearer ${process.env.TODOIST_API_TOKEN}`
         }
-    } catch (error) {
+      });
+      if (response.ok) {
+          const tasks = await response.json();
+          //console.log(tasks);
+          res.json({ status: 'Todoist connection successful!', tasks: tasks });
+      } else {
+          res.status(500).json({ status: 'Error checking Todoist connection', error: 'Failed to fetch tasks' });
+      }
+  } catch (error) {
         console.error('Error checking Todoist connection:', error); // Log the error for debugging
         res.status(500).json({ status: 'Error checking Todoist connection', error: error.message });
     }
