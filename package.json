@@ -12,7 +12,6 @@
     "dev": "nodemon server.js",
     "test": "jest --passWithNoTests",
     "release": "standard-version",
-    "release-and-push": "npm run release && git push --follow-tags origin release",
     "prepare": "husky"
   },
   "keywords": [

@@ -54,10 +54,14 @@ router.get('/auth/google/callback',
 // Route to get user info from session
 router.get('/auth/user', function(req, res) {
   if (req.isAuthenticated()) {
+    // read version from package.json
+    const packageJson = require('../../package.json');
+    const version = packageJson.version;
     res.json({
       userName: req.session.userName,
       userEmail: req.session.userEmail,
-      userIcon: req.session.userIcon
+      userIcon: req.session.userIcon,
+      version: version
     });
   } else {
     res.status(401).json({ message: 'User not authenticated' });
