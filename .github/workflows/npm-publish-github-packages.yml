@@ -27,6 +27,16 @@ jobs:
 
       - name: Run tests
         run: npm test --passWithNoTests
+      # Release   
+      - name: Release
+        run: npm run release
+
+      # GIT commit(force and add tag) & push
+      - name: Commit 
+        run: 'git commit --allow-empty -m "chore(release): publish ${{ steps.release.outputs.newTag }}"'
+
+      - name: Push to GitHub
+        run: git push --follow-tags origin main
 
       # Authenticate with npm registry
       - name: Authenticate to npm
@@ -34,6 +44,6 @@ jobs:
 
       # Publish the package
       - name: Publish package to npm
-        run: npm publish --access public
+        run: npm publish --access public --tag latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
