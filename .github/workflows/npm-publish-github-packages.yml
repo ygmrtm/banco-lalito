@@ -31,6 +31,13 @@ jobs:
       - name: Release
         run: npm run release
 
+      # GIT login
+      - name: GIT login
+        run: |
+          git config --global user.name 'ygmrtm'
+          git config --global user.email 'ygmrtm@gmail.com'
+          git config --global credential.helper '!f() { echo "username=ygmrtm"; echo "password=${{ secrets.GITHUB_TOKEN }}"; }'  
+
       # GIT commit(force and add tag) & push
       - name: Commit 
         run: 'git commit --allow-empty -m "chore(release): publish ${{ steps.release.outputs.newTag }}"'
