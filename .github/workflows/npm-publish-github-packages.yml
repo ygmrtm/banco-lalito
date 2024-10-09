@@ -33,7 +33,7 @@ jobs:
         run: |
           git config --global user.name 'ygmrtm'
           git config --global user.email 'ygmrtm@gmail.com'
-          git config --global credential.helper '!f() { echo "username=ygmrtm"; echo "password=${{ secrets.GITHUB_TOKEN }}"; }'  
+          git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
 
       # Release   
       - name: Release
