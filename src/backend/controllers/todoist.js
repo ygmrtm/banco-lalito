@@ -1,5 +1,4 @@
 const express = require('express');
-const TodoistApi = require('@doist/todoist-api-typescript');
 const dotenv = require('dotenv');
 dotenv.config();
 

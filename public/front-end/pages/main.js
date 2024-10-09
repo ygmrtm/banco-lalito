@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update the user name and icon in the UI
                 document.getElementById('user-name').innerHTML = `<span>${userInfo.userName}</span>`;
                 document.getElementById('user-icon').src = userInfo.userIcon;
+                document.querySelector('footer').textContent = `${getCurrentDate()} | ygmrtm | v${userInfo.version}`;
                 // get pending transactions
                 const pendingTransactions = await fetch('/api/get-pendientes', { method: 'GET' });
                 if (pendingTransactions.ok) {

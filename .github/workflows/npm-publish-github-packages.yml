@@ -43,7 +43,7 @@ jobs:
 
       # GIT commit(force and add tag) & push
       - name: Commit 
-        run: 'git commit --allow-empty -m "chore(release): publish ${{ steps.release.outputs.newTag }}"'
+        run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
 
       - name: Push to GitHub
         run: git push --follow-tags origin main
