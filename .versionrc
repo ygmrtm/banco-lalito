@@ -3,11 +3,11 @@
     {"type": "feat", "section": "Features"},
     {"type": "fix", "section": "Bug Fixes"},
     {"type": "chore", "section": "Chore"},
-    {"type": "docs", "hidden": true},
-    {"type": "style", "hidden": true},
-    {"type": "refactor", "hidden": true},
-    {"type": "perf", "hidden": true},
-    {"type": "test", "hidden": true}
+    {"type": "docs", "section": "Documentation"},
+    {"type": "style", "section": "Style"},
+    {"type": "refactor", "section": "Refactor"},
+    {"type": "perf", "section": "Performance"},
+    {"type": "test", "section": "Tests"}
   ],
   "commitUrlFormat": "https://github.com/ygmrtm/banco-lalito/commit/{{hash}}",
   "compareUrlFormat": "https://github.com/ygmrtm/banco-lalito/compare/{{previousTag}}...{{currentTag}}"

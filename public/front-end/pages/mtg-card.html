@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic: The Gathering - Elegant Card</title>
+    <style>
+        body {
+            font-family: 'Beleren', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1c1c1c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .mtg-card {
+            width: 88mm;
+            height: 117.3mm;
+            background-image: url('https://i.gifer.com/CQx.gif');            
+            background-color: #000000;
+            background-size: cover;
+            border-radius: 4.75mm;
+            box-shadow: 0px 8px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid #000;
+        }
+
+        .card-frame {
+            flex-grow: 1;
+            margin: 2mm;
+            display: flex;
+            flex-direction: column;
+            border-radius: 4.75mm;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 2mm;
+            box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-name {
+            background-color: #4a3c28;
+            padding: 3mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #f9f7f3;
+            font-size: 4mm;
+            font-weight: 700;
+            border-bottom: 2px solid #bdb0a0;
+        }
+
+        .mana-cost {
+            display: flex;
+        }
+
+        .mana-symbol {
+            width: 6mm;
+            height: 6mm;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin-left: 1mm;
+            vertical-align: middle;
+        }
+
+        .mana-earth { background-image: url('https://openclipart.org/image/400px/282943'); }
+        .mana-sun { background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/MTG_%28WP%29.svg/1200px-MTG_%28WP%29.svg.png'); }
+        .mana-fire { background-image: url('https://freesvg.org/img/1499805848.png'); }
+        .mana-water { background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/MTG_%28U%29.svg/1200px-MTG_%28U%29.svg.png'); }
+        .mana-death { background-image: url('https://freesvg.org/img/1499805797.png'); }
+
+        .card-image {
+            height: 40mm;
+            background-color: #f0f0f0;
+            background-image: url('https://preview.redd.it/lovecraft-characters-in-the-pixel-art-style-reminiscent-of-v0-rueo0najys9c1.png?width=1792&format=png&auto=webp&s=99e32b1132fb8232e93ebe43deb2c582c71bbf60');
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #000;
+            border-radius: 2mm;
+            margin: 2mm 0;
+        }
+
+        .card-type {
+            background-color: #d7d1b8;
+            padding: 2mm 3mm;
+            font-size: 3mm;
+            color: #2c3e50;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+        }
+
+        .card-text {
+            background-color: #f9f7f3;
+            padding: 3mm;
+            font-size: 2.8mm;
+            line-height: 1.4;
+            color: #2c3e50;
+            border-radius: 2mm;
+            flex-grow: 1;
+            box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .flavor-text {
+            font-style: italic;
+            padding-top: 2mm;
+            margin-top: 2mm;
+            color: #7f8c8d;
+            border-top: 1px solid #a3adaf;
+        }
+
+        .card-stats {
+            background-color: #d7d1b8;
+            padding: 1mm 3mm;
+            display: flex;
+            justify-content: space-between;
+            font-size: 3mm;
+            align-items: center;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .power-toughness {
+            background-color: #4a3c28;
+            padding: 1mm 2mm;
+            font-size: 3.5mm;
+            color: #f9f7f3;
+            border-radius: 3mm;
+        }
+
+        .collector-number {
+            font-size: 2.5mm;
+            color: #ccd6d7;
+            text-shadow: 0.4px 0.3px 0px #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="mtg-card">
+        <div class="card-frame">
+            <div class="card-name">
+                <span>Elegant Emissary</span>
+                <div class="mana-cost">
+                    <div class="mana-symbol">2</div>
+                    <div class="mana-symbol mana-sun"></div>
+                </div>
+            </div>
+            <div class="card-image"></div>
+            <div class="card-type">Creature — Human Advisor</div>
+            <div class="card-text">
+                When Elegant Emissary enters the battlefield, you gain 2 life.
+                <br><br>
+                {T}: Target creature gets +0/+2 until end of turn.
+                <div class="flavor-text">"In diplomacy, every word is a brushstroke painting the future."</div>
+            </div>
+            <div class="card-stats">
+                <span>E.A.</span>
+                <span class="collector-number">015/249</span>
+                <span class="power-toughness">⚡️2/3🧠</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

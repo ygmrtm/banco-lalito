@@ -61,4 +61,25 @@ router.get('/get-pending', async (req, res) => {
     }
 });
 
+router.get('/karma', async (req, res) => {
+    try {
+        console.log("karma executed");
+        const response = await fetch('https://api.todoist.com/sync/v9/completed/get_stats', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${process.env.TODOIST_API_TOKEN}`
+            }
+        });
+        if (response.ok) {
+            const karma = await response.json();
+            res.json({ status: 'Karma fetched successfully', karma: karma });
+        } else {
+            res.status(500).json({ status: 'Error fetching karma', error: 'Failed to fetch karma' });
+        }
+    } catch (error) {
+        console.error('Error fetching karma:', error);
+        res.status(500).json({ status: 'Error fetching karma', error: error.message }); 
+    }
+});
+
 module.exports = router;
