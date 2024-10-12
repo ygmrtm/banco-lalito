@@ -55,3 +55,6 @@ jobs:
           git config --global user.name 'ygmrtm'
           git config --global user.email 'ygmrtm@gmail.com'
           git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
+      # Release   
+      - name: Release
+        run: npm run release          
