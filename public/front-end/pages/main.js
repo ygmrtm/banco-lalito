@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const todoistBtn = document.getElementById('todoist-btn');
     const experimentalTitle = document.getElementById('experimental-title');
     const experimentalContainer = document.getElementById('experimental-container');
+    const aboutBtn = document.getElementById('about-icon');
     let selectedFile = null;
 
         // Fetch user info from the server
@@ -253,55 +254,125 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });    
 
+    aboutBtn.addEventListener('click', () => {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent gray */
+            z-index: 999; /* Ensure it's behind the floating window */
+        `;    
+        // Create floating window
+        const floatingWindow = document.createElement('div');
+        floatingWindow.style.cssText = `
+            position: fixed;
+            top: 20%;
+            right: 20%;
+            transform: translate(-50%, -50%);
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-height: 40vh;
+            max-width: 40vw;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            `;
 
-    notionBtn.addEventListener('click', async () => {
-        notionBtn.disabled = true; // Disable the button during the operation
-        banner.style.display = 'block';
-        banner.textContent = 'Checking Notion connection...';
+        // Create close button
+        const closeButton = document.createElement('button');
+        closeButton.textContent = 'Close';
+        closeButton.classList.add('close-button');
+        closeButton.onclick = () => {
+            document.body.removeChild(overlay); // Remove overlay
+            document.body.removeChild(floatingWindow); // Remove floating window
+        };
+        const versionContainer = document.createElement('div');
+        const versionText = document.createElement('span');
+        versionText.classList.add('sixtyfour-convergence-prompt');
+        versionContainer.style.cssText = `
+            margin-top: 10px;
+        `;
+        fetch('/auth/user')
+            .then(response => response.json())
+            .then(userInfo => {
+                versionText.textContent = `v${userInfo.version}`;
+            })
+            .catch(error => {
+                console.error('Error fetching user info:', error);
+                versionText.textContent = 'Version unavailable';
+            })
+            .finally(() => {
+                versionContainer.appendChild(versionText);
+            });
         
-        try {
-            const response = await fetch('/notion/health-check', { method: 'GET' });
-            if (response.ok) {
-                const result = await response.json();
-                banner.textContent = `Status: ${result.status}`; // Display the response message
-            } else {
-                banner.textContent = 'Error checking connection. Please try again.';
+        const healthChecksContainer = document.createElement('div');
+        const todoistIcon = document.createElement('img');
+        todoistIcon.src = '../images/todoist-logo.png';
+        todoistIcon.alt = 'Todoist';
+        todoistIcon.style.cssText = `
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 0.5px solid #000;
+            padding: 5px;
+            margin-top: 10px;
+        `;
+        const notionIcon = document.createElement('img');
+        notionIcon.src = '../images/notion-logo.png';
+        notionIcon.alt = 'Notion';
+        notionIcon.style.cssText = `
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 0.5px solid #000;
+            padding: 5px;
+            margin-top: 10px;
+        `;
+        // Perform health checks
+        performHealthChecks().then(healthChecks => {
+            if (!healthChecks.todoistEnabled) {
+                todoistIcon.alt = 'Todoist disabled';
+                todoistIcon.src = '../images/todoist-logo-gray.png';
             }
-        } catch (error) {
-            banner.textContent = 'An error occurred while checking connection.';
-            console.error('Error:', error);
-        } finally {
-            setTimeout(() => {
-                banner.style.display = 'none';
-                notionBtn.disabled = false; // Re-enable the button after processing
-            }, 3000);
-        }
-    });    
+            if (!healthChecks.notionEnabled) {
+                notionIcon.src = '../images/notion-logo-gray.png';
+                notionIcon.alt = 'Notion disabled';
+            }
+        });
+        healthChecksContainer.appendChild(todoistIcon);
+        healthChecksContainer.appendChild(notionIcon);
+        floatingWindow.appendChild(closeButton);
+        floatingWindow.appendChild(versionContainer);
+        floatingWindow.appendChild(healthChecksContainer);
+        // Append overlay and floating window to the body
+        document.body.appendChild(overlay);
+        document.body.appendChild(floatingWindow);
+
+    });
+
 
 // Function to perform health checks for Todoist and Notion
 async function performHealthChecks() {
     try {
         const todoistResponse = await fetch('/todoist/health-check', { method: 'GET' });
-        if (!todoistResponse.ok) {
-            throw new Error('Error checking Todoist connection');
-        }
+        const todoistEnabled = todoistResponse.ok;
         const todoistResult = await todoistResponse.json();
-        document.getElementById('todoist-btn').disabled = false;
+        //document.getElementById('todoist-btn').disabled = false;
         const notionResponse = await fetch('/notion/health-check', { method: 'GET' });
-        if (!notionResponse.ok) {
-            throw new Error('Error checking Notion connection');
-        }
+        const notionEnabled = notionResponse.ok;
         const notionResult = await notionResponse.json();
-        document.getElementById('notion-btn').disabled = false;
-        // Display combined results
-        banner.textContent = `${todoistResult.status} ${notionResult.status}`;
+        return { todoistEnabled, todoistResult, notionEnabled, notionResult };
     } catch (error) {
-        banner.textContent = error.message; // Display specific error message
-    } finally {
-        setTimeout(() => {
-            banner.style.display = 'none';
-        }, 3000);
-    }
+        throw new Error('Error checking health: '+error);
+    } 
 }
 
 // Add event listener to experimental title

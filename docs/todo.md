@@ -13,7 +13,7 @@
 - [x]  docs: [README.md](http://README.md)
 - [x]  feat: karma button
 - [x]  fix: reorder the todoist display
-- [ ]  fix: send mail with valid CC
+- [x]  fix: send mail with valid CC
 - [x]  feat: Todoist click task to close it.
-- [ ]  feat: about
-- [ ]  feat: Health check desde about y en cache.
+- [x]  feat: about
+- [x]  feat: Health check desde about.
