@@ -57,4 +57,10 @@ jobs:
           git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
       # Release   
       - name: Release
-        run: npm run release          
+        run: npm run release-dry-run
+      - name: Debug .versionrc and CHANGELOG.md
+        run: | 
+          echo "Contents of .versionrc:"
+          cat .versionrc
+          echo "Contents of CHANGELOG.md:"
+          cat CHANGELOG.md
