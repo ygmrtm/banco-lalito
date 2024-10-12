@@ -306,24 +306,20 @@ async function performHealthChecks() {
 
 // Add event listener to experimental title
 experimentalTitle.addEventListener('click', () => {
-    const bypassHealthChecks = true;
     if (experimentalContainer.style.display === 'none') {
         experimentalContainer.style.display = 'block';
         experimentalTitle.textContent = 'Hide Experimental .Ø_Ø.';
-        banner.style.display = 'block';
-        if(!bypassHealthChecks) {
-            banner.textContent = 'Performing health check...';
-            performHealthChecks(); // Call the health check function
-        } else {
-            banner.textContent = 'Bypassing health checks...';
-            document.getElementById('todoist-btn').disabled = false;
-            //document.getElementById('notion-btn').disabled = false;
-        }
+        //banner.style.display = 'block';
     } else {
         experimentalContainer.style.display = 'none';
         experimentalTitle.textContent = 'Show Experimental .Ø_Ø.';
     }
-    
+    const financialDashboardContainer = document.getElementById('financial-dashboard-container');
+    if (financialDashboardContainer.style.display !== 'none') {
+        financialDashboardContainer.classList.remove('show');
+        //financialDashboardContainer.style.display = 'none';
+    }
+
 
     });
 });

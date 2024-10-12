@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Karma Dashboard - Pixelart</title>
+  <link rel="icon" href="/front-end/assets/favicon.ico" type="image/x-icon">
   <style>
     body {
       background-color: #f4f4f4;
@@ -18,9 +19,9 @@
     
     .dashboard-container {
       width: 400px;
-      background-color: #a7c2d8;
-      border: 4px solid #721212;
-      box-shadow: 5px 5px 0px #666;
+      background-color: #C08B5C; /* Updated to warm color */
+      border: 4px solid #453F78; /* Updated to warm color */
+      box-shadow: 5px 5px 0px #795458; /* Updated to warm color */
       padding: 10px;
       display: grid;
       grid-template-rows: auto 1fr auto;
@@ -31,20 +32,20 @@
     .dashboard-chart {
       width: 100%;
       height: 250px;
-      border: 2px solid #721212;
-      box-shadow: 3px 3px 0px #666;
-      background-color: transparent; /* Make background transparent */
+      border: 2px solid #453F78; /* Updated to warm color */
+      box-shadow: 3px 3px 0px #795458; /* Updated to warm color */
+      background-color: transparent; /* Keep background transparent */
       position: relative; /* Ensure it is positioned relative to the container */
-      z-index: 2; /* Higher z-index to be above the skeleton matrix */
+      z-index: 3200; /* Higher z-index to be above the skeleton matrix */
     }
 
     .header {
       text-align: center;
       font-size: 42px;
       font-weight: 300;
-      color: #721212;
-      text-shadow: 2px 2px 0px #ffffff;
-      z-index: 3; /* Ensure header is above the matrix */
+      color: #FFC94A; /* Updated to warm color */
+      text-shadow: 2px 2px 0px #453F78;
+      z-index: 3300; /* Ensure header is above the matrix */
       position: relative; /* Ensure it is positioned relative to the container */
     }
 
@@ -52,41 +53,24 @@
       text-align: center;
       font-size: 35px;
       font-weight: 200;
-      color: #ffffff;
-      text-shadow: 2px 2px 0px #721212;
-      z-index: 3; /* Ensure sub-header is above the matrix */
+      color: #FFC94A; /* Updated to warm color */
+      text-shadow: 2px 2px 0px #453F78;
+      z-index: 3300; /* Ensure sub-header is above the matrix */
       position: relative; /* Ensure it is positioned relative to the container */
     }
 
-    .footer {
+    .footer-karma {
       text-align: center;
       font-size: 12px;
-      color: #721212;
+      color: #453F78; /* Updated to warm color */
       margin-top: 10px;
-      border-top: 0.5px solid #721212;
+      border-top: 0.5px solid #453F78; /* Updated to warm color */
       padding-top: 10px;
-      z-index: 3; /* Ensure footer is above the matrix */
+      z-index: 3300; /* Ensure footer is above the matrix */
+      background-color: transparent;
       position: relative; /* Ensure it is positioned relative to the container */
     }
 
-    .matrix {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1px;
-      margin-top: 5px;
-      position: absolute; /* Position it absolutely */
-      top: 0; /* Align it to the top of the container */
-      left: 0; /* Align it to the left of the container */
-      width: 100%; /* Full width */
-      height: 100%; /* Full height */
-      z-index: 1; /* Lower z-index to be behind other elements */
-    }
-
-    .matrix span {
-      font-size: 40px;
-      color: #d78323;
-      text-align: center;
-    }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -128,47 +112,21 @@
       font-weight: 300;
       font-style: normal;
     }
-
-
   </style>
 </head>
 <body>
   <div class="dashboard-container">
     <div class="header">
-      <span class="monofett-regular" >K.O. Score:</span> <span class="syne-mono-regular" >63089</span>
+      <span class="monofett-regular">K.O. Score:</span> <span class="syne-mono-regular">{{completedCount}}</span>
     </div>
     <div class="sub-header">
-      <span class="monofett-regular">Karma Score:</span> <span class="syne-mono-regular">33365</span>
+      <span class="monofett-regular">Karma Score:</span> <span class="syne-mono-regular">{{karmaScore}}</span>
     </div>
-    <!-- ToDo: Add Karma Score Chart 
-     "karma_graph_data": [
-            {
-                "date": "2024-10-03",
-                "karma_avg": 33155
-            },]  -->
     <div class="dashboard-chart"><canvas id="karma-score-chart"></canvas></div>
-    <!-- Matrix Container -->
-    <div class="matrix" id="skeleton-matrix"></div>
-    <div class="footer">
-      Last update reasons: ✅ 365 good | ❌ 12 bad
+    <div class="footer-karma syne-mono-regular">
+      Last update reasons: ✅ {{goodReasonsTotal}} good | ❌ {{badReasonsTotal}} bad
     </div>
-
   </div>
-
-  <script>
-    // Function to create a 4x4 matrix of skeleton icons
-    function createSkeletonMatrix() {
-      const matrixContainer = document.getElementById('skeleton-matrix');
-      for (let i = 0; i < 50; i++) {
-        const skeletonIcon = document.createElement('span');
-        skeletonIcon.className = 'material-symbols-outlined';
-        skeletonIcon.textContent = 'skull'; 
-        matrixContainer.appendChild(skeletonIcon);
-      }
-    }
-
-    // Call the function to create the matrix when the page loads
-    window.onload = createSkeletonMatrix;
   </script>
 </body>
 </html>

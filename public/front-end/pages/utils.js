@@ -125,27 +125,48 @@ async function displayKarma() {
     try {
         const response = await fetch('/todoist/karma', { method: 'GET' });
         const karma = await response.json();
-        if(!response.ok){
+        if (!response.ok) {
             throw new Error('Error fetching karma');
         }
         console.log(karma);
+
+        let badReasonsTotal = 0;
+        let goodReasonsTotal = 0;
+        const listOfReasons = [];
+        for (const reason of karma.karmaUpdateReasons) {
+            if (reason.negative_karma > 0) {
+                badReasonsTotal += reason.negative_karma;
+                for (const badReasons of reason.negative_karma_reasons) {
+                    if (!listOfReasons.includes(badReasons)) {
+                        listOfReasons.push(badReasons);
+                    }
+                }
+            } else if (reason.positive_karma > 0) { 
+                goodReasonsTotal += reason.positive_karma;
+                for (const goodReason of reason.positive_karma_reasons) {
+                    if (!listOfReasons.includes(goodReason)) {
+                        listOfReasons.push(goodReason);
+                    }
+                }
+            }
+        }
         
         const karmaWindow = document.createElement('div');
         karmaWindow.style.cssText = `
-        position: fixed;
-        top: 40%;
-        left: 40%;
-        transform: translate(-50%, -50%);
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.3);
-        z-index: 2000;
-        max-height: 70vh;
-        max-width: 70vw;
-        overflow-y: auto;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            padding: 1px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 3000;
+            max-height: 520px;
+            overflow-y: auto;
         `;
-        //Create div for buttons
+
+        // Create div for buttons
         const buttonDiv = document.createElement('div');
         buttonDiv.classList.add('button-group');
         const closeButton = document.createElement('button');
@@ -156,6 +177,43 @@ async function displayKarma() {
         };
         buttonDiv.appendChild(closeButton);
         karmaWindow.appendChild(buttonDiv);
+
+        // Create content for the karma dashboard
+        // Fetch the karma dashboard HTML template
+        fetch('karmadash.html')
+        .then(response => response.text())
+        .then(templateHTML => {
+            const karmaContent = document.createElement('div');
+            karmaContent.innerHTML = templateHTML.replace('{{completedCount}}', karma.completedCount)
+                                            .replace('{{karmaScore}}', karma.karmaScore)
+                                            .replace('{{goodReasonsTotal}}', goodReasonsTotal)
+                                            .replace('{{badReasonsTotal}}', badReasonsTotal);
+            const matrixContainer = document.createElement('div');
+            matrixContainer.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 1px;
+                margin-top: 1px;
+                position: absolute; /* Position it absolutely */
+                top: 40px; /* Align it to the top of the container */
+                left: 0; /* Align it to the left of the container */
+                width: 100%; /* Full width */
+                height: 85%; /* Full height */
+                z-index: 3001; /* Lower z-index to be behind other elements */
+                color: #FFC94A; /* Updated to warm color */
+                text-align: center;
+            `;
+            matrixContainer.id = 'skeleton-matrix';
+            for (let i = 0; i < 50; i++) {
+                const skeletonIcon = document.createElement('span');
+                skeletonIcon.className = 'material-symbols-outlined';
+                skeletonIcon.textContent = 'skull'; 
+                skeletonIcon.style.fontSize = '30px';
+                matrixContainer.appendChild(skeletonIcon);
+            }
+            karmaContent.appendChild(matrixContainer);
+            karmaWindow.appendChild(karmaContent);
+        });
         document.body.appendChild(karmaWindow);
     } catch (error) {
         console.error('Error:', error);

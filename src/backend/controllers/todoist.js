@@ -72,9 +72,13 @@ router.get('/karma', async (req, res) => {
         });
         if (response.ok) {
             const karma = await response.json();
-            res.json({ status: 'Karma fetched successfully', karma: karma });
+            const completedCount = karma.completed_count;
+            const karmaScore = karma.karma;
+            const karmaDataGraph = karma.karma_graph_data;
+            const karmaUpdateReasons = karma.karma_update_reasons;
+            res.json({ status: 'Karma fetched successfully', completedCount: completedCount, karmaScore: karmaScore, karmaDataGraph: karmaDataGraph, karmaUpdateReasons: karmaUpdateReasons });
         } else {
-            res.status(500).json({ status: 'Error fetching karma', error: 'Failed to fetch karma' });
+            res.status(500).json({ status: 'Response not ok', error: 'Failed to fetch karma' });
         }
     } catch (error) {
         console.error('Error fetching karma:', error);
