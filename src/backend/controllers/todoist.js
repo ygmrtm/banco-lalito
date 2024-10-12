@@ -94,4 +94,20 @@ router.get('/karma', async (req, res) => {
     }
 });
 
+router.get('/close/:id', async (req, res) => {
+    console.log("close executed");
+    const taskId = req.params.id;
+    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${taskId}/close`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${process.env.TODOIST_API_TOKEN}`
+        }
+    });
+    if (response.ok) {
+        res.json({ status: 'Task closed successfully' });
+    } else {
+        res.status(500).json({ status: 'Error closing task', error: 'Failed to close task' });
+    }
+});
+
 module.exports = router;

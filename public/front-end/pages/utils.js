@@ -81,8 +81,24 @@ function displayPendingTasks(tasks) {
             // Priority
             const tdPriority = document.createElement('td');
             tdPriority.style.cssText = 'padding: 12px; text-align: center;';
+            const closeTaskLink = document.createElement('a');
+            closeTaskLink.href = '#';
+            closeTaskLink.textContent = '✘';
             const priorityColors = ['#520556', '#8B104E', '#CA431D', '#FF9900'];
-            tdPriority.innerHTML = `<span style="color: ${priorityColors[task.priority]};">✘</span>`;
+            closeTaskLink.style.color = priorityColors[task.priority];
+            closeTaskLink.onclick = async (event) => {
+                event.preventDefault(); // Prevent default link behavior
+                const closeResponse = await fetch(`/todoist/close/${task.id}`);
+                if (closeResponse.ok) {
+                    // Gray out and disable the link
+                    closeTaskLink.style.color = '#ccc'; // Change color to gray
+                    closeTaskLink.textContent = 'Deleted'; // Change text to indicate deletion
+                    closeTaskLink.onclick = null; // Disable further clicks
+                } else {
+                    alert('Failed to delete the task.'); // Handle error
+                }
+            };
+            tdPriority.appendChild(closeTaskLink);
             
             // Task content and description
             const tdContent = document.createElement('td');
@@ -195,7 +211,7 @@ async function displayKarma() {
                 gap: 1px;
                 margin-top: 1px;
                 position: absolute; /* Position it absolutely */
-                top: 40px; /* Align it to the top of the container */
+                top: 45px; /* Align it to the top of the container */
                 left: 0; /* Align it to the left of the container */
                 width: 100%; /* Full width */
                 height: 85%; /* Full height */
@@ -208,7 +224,7 @@ async function displayKarma() {
                 const skeletonIcon = document.createElement('span');
                 skeletonIcon.className = 'material-symbols-outlined';
                 skeletonIcon.textContent = 'skull'; 
-                skeletonIcon.style.fontSize = '30px';
+                skeletonIcon.style.fontSize = '35px';
                 matrixContainer.appendChild(skeletonIcon);
             }
             karmaContent.appendChild(matrixContainer);

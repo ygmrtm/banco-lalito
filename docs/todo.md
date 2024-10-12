@@ -10,11 +10,10 @@
 
 ## MVP2
 
-- [ ]  banner animation
-- [ ]  karma button
-- [ ]  mtg card page
-- [ ]  mtg card generator
-- [ ]  reorder the todoist display
-- [ ]  About
-- [ ]  Health check desde about y en cache.
-- [ ]  Todoist click task to close it.
+- [x]  docs: [README.md](http://README.md)
+- [x]  feat: karma button
+- [x]  fix: reorder the todoist display
+- [ ]  fix: send mail with valid CC
+- [x]  feat: Todoist click task to close it.
+- [ ]  feat: about
+- [ ]  feat: Health check desde about y en cache.
