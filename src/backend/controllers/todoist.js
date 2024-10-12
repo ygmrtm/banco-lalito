@@ -50,8 +50,16 @@ router.get('/get-pending', async (req, res) => {
       });
       if (response.ok) {
           const tasks = await response.json();
-          //console.log(tasks);
-          res.json({ status: 'Todoist connection successful!', tasks: tasks });
+          // generate a list of tasks sorted by created_at and priority ascending
+          // Sort tasks based on due date
+          const sortedTasks = tasks.sort((a, b) => {
+            // Check if due dates exist
+            const dueA = a.due ? new Date(a.due.date) : Infinity; // Use Infinity if no due date
+            const dueB = b.due ? new Date(b.due.date) : Infinity; // Use Infinity if no due date
+
+            return dueA - dueB; // Sort in ascending order
+          });
+          res.json({ status: 'Todoist connection successful!', tasks: sortedTasks });
       } else {
           res.status(500).json({ status: 'Error checking Todoist connection', error: 'Failed to fetch tasks' });
       }

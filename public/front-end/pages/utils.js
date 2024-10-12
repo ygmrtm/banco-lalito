@@ -94,7 +94,7 @@ function displayPendingTasks(tasks) {
             // Due date
             const tdDue = document.createElement('td');
             tdDue.style.cssText = 'padding: 12px; text-align: center;';
-            tdDue.textContent = task.due ? task.due.string : 'No due date';
+            tdDue.textContent = task.due ? task.due.date : 'No due date';
             
             // Actions
             const tdActions = document.createElement('td');
