@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karma Dashboard - Pixelart</title>
+  <link rel="icon" href="/front-end/assets/favicon.ico" type="image/x-icon">
+  <style>
+    body {
+      background-color: #f4f4f4;
+      font-family: "Syne Mono", monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: #333;
+      position: relative; /* Set position relative for absolute positioning of children */
+    }
+    
+    .dashboard-container {
+      width: 400px;
+      background-color: #C08B5C; /* Updated to warm color */
+      border: 4px solid #453F78; /* Updated to warm color */
+      box-shadow: 5px 5px 0px #795458; /* Updated to warm color */
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 20px;
+      position: relative; /* Set position relative for absolute positioning of children */
+    }
+
+    .dashboard-chart {
+      width: 100%;
+      height: 250px;
+      border: 2px solid #453F78; /* Updated to warm color */
+      box-shadow: 3px 3px 0px #795458; /* Updated to warm color */
+      background-color: transparent; /* Keep background transparent */
+      position: relative; /* Ensure it is positioned relative to the container */
+      z-index: 3200; /* Higher z-index to be above the skeleton matrix */
+    }
+
+    .header {
+      text-align: center;
+      font-size: 42px;
+      font-weight: 300;
+      color: #FFC94A; /* Updated to warm color */
+      text-shadow: 2px 2px 0px #453F78;
+      z-index: 3300; /* Ensure header is above the matrix */
+      position: relative; /* Ensure it is positioned relative to the container */
+    }
+
+    .sub-header {
+      text-align: center;
+      font-size: 35px;
+      font-weight: 200;
+      color: #FFC94A; /* Updated to warm color */
+      text-shadow: 2px 2px 0px #453F78;
+      z-index: 3300; /* Ensure sub-header is above the matrix */
+      position: relative; /* Ensure it is positioned relative to the container */
+    }
+
+    .footer-karma {
+      text-align: center;
+      font-size: 12px;
+      color: #453F78; /* Updated to warm color */
+      margin-top: 10px;
+      border-top: 0.5px solid #453F78; /* Updated to warm color */
+      padding-top: 10px;
+      z-index: 3300; /* Ensure footer is above the matrix */
+      background-color: transparent;
+      position: relative; /* Ensure it is positioned relative to the container */
+    }
+
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=skull" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Monofett&family=Press+Start+2P&family=Sixtyfour+Convergence:BLED,SCAN,XELA,YELA@0..100,-53..100,-100..100,-100..100&family=Syne+Mono');
+  </style>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 100,
+      'GRAD' 0,
+      'opsz' 48
+    }
+    /* <uniquifier>: Use a unique and descriptive class name
+    // <bleed>: Use a value from 0 to 100
+    // <scanlines>: Use a value from -53 to 100
+    // <horizontal element alignment>: Use a value from -100 to 100
+    // <vertical element alignment>: Use a value from -100 to 100*/
+    .sixtyfour-convergence-prompt {
+      font-family: "Sixtyfour Convergence", sans-serif;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-style: normal;
+      font-variation-settings:
+        "BLED" 0,
+        "SCAN" 0,
+        "XELA" 0,
+        "YELA" 0;
+    }
+    .syne-mono-regular {
+      font-family: "Syne Mono", monospace;
+      font-weight: 300;
+      font-style: normal;
+    }
+    .monofett-regular {
+      font-family: "Monofett", monospace;
+      font-weight: 300;
+      font-style: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="header">
+      <span class="monofett-regular">K.O. Score : </span> <span class="syne-mono-regular">{{completedCount}}</span>
+    </div>
+    <div class="sub-header">
+      <span class="monofett-regular">Karma Score : </span> <span class="syne-mono-regular">{{karmaScore}}</span>
+    </div>
+    <div class="dashboard-chart"><canvas id="karma-score-chart"></canvas></div>
+    <div class="footer-karma syne-mono-regular">
+      Last update reasons: ✅ {{goodReasonsTotal}} good | ❌ {{badReasonsTotal}} bad
+    </div>
+  </div>
+  </script>
+</body>
+</html>
