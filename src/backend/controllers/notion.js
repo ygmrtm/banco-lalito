@@ -70,6 +70,7 @@ initializeNotion().catch(error => {
  */
 async function sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString) {
     try {
+        const currentDate = new Date().toISOString().slice(0, 10);
         if (!process.env.BLOCK_STAT_LOG) {
             throw new Error('Missing `env.BLOCK_STAT_LOG` environment variable.');
         }

@@ -17,3 +17,7 @@
 - [x]  feat: Todoist click task to close it.
 - [x]  feat: about
 - [x]  feat: Health check desde about.
+
+## MVP3
+
+- [x]  fix: sendToNotionMoonLog
