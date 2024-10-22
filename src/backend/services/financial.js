@@ -204,12 +204,13 @@ router.post('/process-xlsx', upload.single('file'), async (req, res) => {
         const fechaRaw = row.Fecha;
         const description = row.Descripción ;
         const descriptionTrim = description.replace(/ /g, "");
-        const pagosDepositos = row['Pagos y Depósitos'];
-        const comprasRaw = row.Compras;
+        const pagosDepositos = row['Pagos y Depósitos']?row['Pagos y Depósitos']:0.0;
+        const comprasRaw = row.Compras? parseFloat(row.Compras.replace('$', '').replace(',', '').trim()) : 0.0;
   
         const fecha = parseSpanishDate(fechaRaw);
-        const compras = parseFloat(comprasRaw.replace('$', '').replace(',', '').trim());
-        const key = fecha.replace(/-/g, "") + descriptionTrim + compras.toString();
+        //console.log(comprasRaw);
+        //const compras = parseFloat(comprasRaw.replace('$', '').replace(',', '').trim());
+        const key = fecha.replace(/-/g, "") + descriptionTrim + comprasRaw.toString();
   
         return {
           key,
@@ -217,10 +218,9 @@ router.post('/process-xlsx', upload.single('file'), async (req, res) => {
           description,
           descriptionTrim,
           pagosDepositos,
-          compras
+          comprasRaw
         };      
       });
-
       const recordsProcessed = await executeCCProcess(cleanedData);
       if (recordsProcessed > 0) {
         const currentDateFormatted = (new Date()).toISOString().slice(0, 10).replace(/-/g, '');       

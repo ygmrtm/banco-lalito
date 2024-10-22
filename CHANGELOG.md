@@ -4,16 +4,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### 2.1.7 (2024-10-14)
 
-### 2.1.6 (2024-10-12)
-
-### 2.1.5 (2024-10-12)
-
-### 2.1.4 (2024-10-12)
-
-### 2.1.3 (2024-10-12)
-
-### 2.1.2 (2024-10-12)
-
 ### 2.1.1 (2024-10-09)
 
 ## [2.1.0](https://github.com/ygmrtm/banco-lalito/compare/v2.0.1...v2.1.0) (2024-10-08)

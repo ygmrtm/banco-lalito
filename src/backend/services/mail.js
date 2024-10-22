@@ -183,7 +183,7 @@ async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLo
             personalizations: [
               {
                 to: [{ email: userEmail }],
-                cc: [{ email: process.env.ADMIN_EMAIL }],
+                cc: [{ email: process.env.OWNER_EMAIL }],
                 subject: (getDaysBetweenDates(new Date(), new Date(process.env.DATE_LAST_UPDATE)) <= 100 ? '🆕 ' : 'ℹ️ ').concat(subject),
               },
             ],
