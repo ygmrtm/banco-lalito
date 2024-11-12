@@ -7,7 +7,6 @@ const router = express.Router();
 
 // Middleware function
 const myMiddleware = (req, res, next) => {
-    console.log('Middleware executed');
     next(); // Pass control to the next middleware
 };
 
@@ -33,7 +32,6 @@ router.get('/health-check', async (req, res) => {
         } else {
             responseString = responseString.concat('| ', 'Notion connection [❌]');
         }
-      
         res.json({ status: responseString });
     } catch (error) {
         console.error('Health check error:', error); // Log the error for debugging
@@ -70,6 +68,7 @@ initializeNotion().catch(error => {
  */
 async function sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString) {
     try {
+        const currentDate = new Date().toISOString().slice(0, 10);
         if (!process.env.BLOCK_STAT_LOG) {
             throw new Error('Missing `env.BLOCK_STAT_LOG` environment variable.');
         }
@@ -160,14 +159,14 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
     //implemement wait for 5 seconds
     await new Promise(resolve => setTimeout(resolve, 5000));
     if(!externalIconURL)
-      await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
-      icon: {emoji: emoji},});
+        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        icon: {emoji: emoji},});
     else 
-      await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
         icon: {external:{url:externalIconURL}},});
-  }
-  
-  /**
+}
+
+/**
    * Updates a Notion page with the provided financial information.
    * Retrieves the page, calculates the updated financial values, and updates the page accordingly.
    * 
@@ -177,50 +176,47 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
    * @param monto_modif The modified financial amount to be updated on the page.
    * @returns A promise that resolves to the updated page object.
    */
-  async function updateNotionPage(databaseId, notionIdPeople, monto_modif, monto_fin) {
+async function updateNotionPage(databaseId, notionIdPeople, monto_modif, monto_fin) {
     let updated = null;
     try {
-      const response = await notion.databases.query({
-        database_id: databaseId,
-        filter: {
-          "and": [
-            { property: 'πpol', relation: { contains: notionIdPeople } }
-          ]
-        },
-        sorts: [{ property: 'pred_date', direction: 'descending' }]
-      });
-  
-      console.log("updateNotionPage 🔢 = ", response.results.length, notionIdPeople);
-  
-      const data = response.results;
-      const pageid = data[0].id;
-      let monto_ant = 0;
-  
-      const fullPage = await notion.pages.retrieve({ page_id: pageid });
-  
-      if ('properties' in fullPage) {
-        const montoModif = fullPage.properties.monto_modif;
-        monto_ant = montoModif?.number ?? 0;
-      }
-  
-      if (monto_fin !== 0) {
-        updated = await notion.pages.update({ page_id: pageid, properties: { monto_fin: { number: monto_fin } } });
-      } else if (monto_modif !== 0) {
-        updated = await notion.pages.update({ page_id: pageid, properties: { monto_modif: { number: monto_modif + monto_ant } } });
-      } 
-  
+        const response = await notion.databases.query({
+            database_id: databaseId,
+            filter: {
+                "and": [
+                { property: 'πpol', relation: { contains: notionIdPeople } }
+                ]
+            },
+            sorts: [{ property: 'pred_date', direction: 'descending' }]
+        });
+        console.log("updateNotionPage 🔢 = ", response.results.length, notionIdPeople);
+        const data = response.results;
+        const pageid = data[0].id;
+        let monto_ant = 0;
+        let start_date = new Date().toISOString().slice(0, 10);
+        const fullPage = await notion.pages.retrieve({ page_id: pageid });
+        if ('properties' in fullPage) {
+            const montoModif = fullPage.properties.monto_modif;
+            start_date = fullPage.properties.pred_date.date.start;
+            monto_ant = montoModif?.number ?? 0;
+        }
+        if (monto_fin !== 0) {
+            updated = await notion.pages.update({ page_id: pageid, properties: { monto_fin: { number: monto_fin }, pred_date: { date: {end: new Date().toISOString().slice(0, 10), start: start_date} } } });
+        } else if (monto_modif !== 0) {
+            updated = await notion.pages.update({ page_id: pageid, properties: { monto_modif: { number: monto_modif + monto_ant } } });
+        } 
     } catch (error) {
-      console.error('Error updateNotionPage:', error); 
+        console.error('Error updateNotionPage:', error); 
+        throw error;
     }finally{
-      return updated;
+        return updated;
     }
-  }
+}
 
-  async function updateNotionMissmatch(notionId, monto_antes) {
-    console.log("updateNotionMissmatch 🔢 = ", notionId, monto_antes);
-    const updated = await notion.pages.update({ page_id: notionId, properties: { antes: { number: monto_antes } } });
-    return updated;
-  }
+async function updateNotionMissmatch(notionId, monto_antes) {
+console.log("updateNotionMissmatch 🔢 = ", notionId, monto_antes);
+const updated = await notion.pages.update({ page_id: notionId, properties: { antes: { number: monto_antes } } });
+return updated;
+}
 
 
 

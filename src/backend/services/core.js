@@ -170,27 +170,27 @@ const mantenimiento = async (properties) => {
           let ajuste = 0;
         
           data.forEach((item) => {
-              const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
-              current = item.properties.current$.formula.number;
-              ajuste = monto - current;
-            
-              const propertiesIns = {
-                  Name: { title: [{ text: { content: todoist } }] },
-                  description: { rich_text: [{ text: { content: description } }] },
-                  mto_to: { number: ajuste },
-                  type: { select: { name: '(mov)imiento' } },
-                  πpol_to: { multi_select: [{ name: todoist }] }
-              };
+            const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
+            current = item.properties.current$.formula.number;
+            ajuste = monto - current;
+          
+            const propertiesIns = {
+                Name: { title: [{ text: { content: todoist } }] },
+                description: { rich_text: [{ text: { content: description } }] },
+                mto_to: { number: ajuste },
+                type: { select: { name: '(mov)imiento' } },
+                πpol_to: { multi_select: [{ name: todoist }] }
+            };
             
             addNotionPageToDatabase(DATABASE_BAK_ID, propertiesIns, ajuste);
             
-              if (todoist.toLowerCase().includes("familia")) {
-                  interesFamiliar(ajuste, todoist, description);
-              }
-            
-              if (generaBloqueInversion) {
-                  insertCetesPlazosDB(properties, description);
-              }
+            if (todoist.toLowerCase().includes("familia")) {
+                interesFamiliar(ajuste, todoist, description);
+            }
+          
+            if (generaBloqueInversion) {
+                insertCetesPlazosDB(properties, description, ajuste * -1);
+            }
           });
         
           console.log(`From: ${current} To:${monto} then created:${ajuste} to adjust it.`);
@@ -240,7 +240,10 @@ const interesFamiliar = async (ajuste, fromAcc, description) => {
       }
   };
 
-
+  // Sleep function that returns a promise
+  function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+  }
 /**
  * Executes a movement operation with the specified amount, date, description, people involved in the transaction.
  * Generates a unique transaction key and logs the details of the movement.
@@ -274,7 +277,7 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
         console.log("movimiento 🔢 = ", response.results.length, todoist);
         const data = response.results;
         //console.log(data);
-        data.forEach((item) => { 
+        data.forEach(async (item) => { 
           const current = item.properties.current$.formula.number;
           const notionid = item.id;
           const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
@@ -289,9 +292,11 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
           };
           //console.log('properties:', properties);
           addNotionPageToDatabase(DATABASE_MVN_ID, properties, monto);
+          //sleep for 5 secs
+          await sleep(5000);
           if (generaBloqueInversion)
-            updateNotionPage(DATABASE_CET_ID, notionid, 0,monto);  
-          if(type === "A"){
+            updateNotionPage(DATABASE_CET_ID, notionid, monto,0);  
+          /*if(type === "A"){
             const propertiesBAK = {
                 Name: { title: [{ text: { content: transactionKey } }] },
                 description: { rich_text: [{ text: { content: description } }] },
@@ -302,7 +307,7 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
                 pending: { checkbox: true }
               }
               addNotionPageToDatabase(DATABASE_BAK_ID, propertiesBAK, monto);
-          }
+          }*/
 
         });
         totalForFrom += monto;
@@ -451,7 +456,7 @@ const inversiones = async (proper) => {
 
       try {
           descriptionText = `${descriptionText} ${daysValue}d:w${currentWeekNumber} con folio:${folioNumber} y serie:${serieValue} al ${incremValue * 100}%`;
-          insertCetesPlazosDB(proper, descriptionText);
+          insertCetesPlazosDB(proper, descriptionText, 0);
 
           if (peopleFrom.length > 0) {
               const properties = {
@@ -495,7 +500,7 @@ const inversiones = async (proper) => {
  * @param proper - The data object containing information about the Cetes Plazos.
  * @param description - The description of the Cetes Plazos data.
  */
-async function insertCetesPlazosDB(proper, description){
+async function insertCetesPlazosDB(proper, description, monto_modif){
   const monto = Number(proper.mto_to.number);
   const peopleTo = proper.πpol_to.multi_select[0].name;
   let serie = proper.serie.formula.string.length > 0 ? proper.serie.formula.string : new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -532,14 +537,14 @@ async function insertCetesPlazosDB(proper, description){
       description: { rich_text: [{ text: { content: description } }] },
       πpol: { relation: [{ id: notionid }] },
       tasa_pred: { number: increm }, tasa_fin: { number: increm },
-      monto_inv: { number: monto }, monto_fin: { number: mto_final },
+      monto_inv: { number: monto }, monto_fin: { number: mto_final }, monto_modif: { number: monto_modif },
       serie: { number:serie }, folio: { number: folio },
       plazo: { number: days },
       pred_date: { date: { start: fIni, end: fFin } },
     };
     //console.log(properTimeline);
     if (generaBloqueInversion)
-      updateNotionPage(DATABASE_CET_ID, notionid, monto, 0);
+      updateNotionPage(DATABASE_CET_ID, notionid, 0, monto);
     await addNotionPageToDatabase(DATABASE_CET_ID, properTimeline, 1, externalIconURL);
   } catch (error) {
     console.error('Error insertCetesPlazosDB:', error);
@@ -557,10 +562,10 @@ const movementsCache = {}; // Initialize an in-memory cache
  */
 async function getMovements(notionid,todoist, from, to) {
   const cacheKey = `${todoist}-${from.toISOString().slice(0, 10)}-${to.toISOString().slice(0, 10)}`;
-  if (movementsCache[cacheKey]) {
+  /*if (movementsCache[cacheKey]) {
     console.log(`== getMovements for ${cacheKey} (cached) ==`);
     return movementsCache[cacheKey];
-  }
+  }*/
   console.log(`== getMovements for ${notionid} | ${cacheKey} ==`);
   let nextCursor = null;
   const returnArray = [];
@@ -644,7 +649,7 @@ function generaRifa(data){
     const todoist = item.properties.todoist.rich_text[0].plain_text;
     if(value > 0 ){
         array.push(todoist);
-        array.push("👻.💀");
+        //array.push("👻.💀");
     } 
   });
   return array[Math.floor(Math.random() * array.length)];
@@ -820,21 +825,22 @@ const executeCCProcess = async (cleanedData) => {
     };
     const nonMatchingRecords = getNonMatchingKeys(cleanedData, fromNotion);
     let recordsProcessed = 0;
+
     nonMatchingRecords.forEach(async (row) => {
-      if (row.compras) {
+      if (row.comprasRaw) {
         const properties = {
           Name: { title: [{ text: { content: 'cc'.concat(':', mainAccount) } }] },
           description: { rich_text: [{ text: { content: 'pagoCC:'.concat(row.fecha, '|', row.description.trim()) } }] },
-          mto_to: { number: (row.compras * -1) },
+          mto_to: { number: (row.comprasRaw * -1) },
           type: { select: { name: '(mov)imiento' } },
           πpol_to: { multi_select: [{ name: mainAccount }] },
           pending: { checkbox: true }
         }
         await addNotionPageToDatabase(DATABASE_BAK_ID, properties, -1);
         const properties2 = {
-          Name: { title: [{ text: { content: getRandomKey('credito', Math.trunc(row.compras)) } }] },
+          Name: { title: [{ text: { content: getRandomKey('credito', Math.trunc(row.comprasRaw)) } }] },
           description: { rich_text: [{ text: { content: row.description.trim() } }] },
-          monto: { number: (row.compras * -1) },
+          monto: { number: (row.comprasRaw * -1) },
           when: { date: { start: row.fecha } }
         };
         await addNotionPageToDatabase(DATABASE_CC_ID, properties2, -1);

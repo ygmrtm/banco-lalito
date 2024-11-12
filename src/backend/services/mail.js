@@ -183,7 +183,7 @@ async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLo
             personalizations: [
               {
                 to: [{ email: userEmail }],
-                cc: [{ email: process.env.ADMIN_EMAIL }],
+                cc: [{ email: process.env.OWNER_EMAIL }],
                 subject: (getDaysBetweenDates(new Date(), new Date(process.env.DATE_LAST_UPDATE)) <= 100 ? '🆕 ' : 'ℹ️ ').concat(subject),
               },
             ],
@@ -227,6 +227,9 @@ async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLo
       ,'Levantar el dedo medio 🖕🏼 es la mitad del camino para hacer el signo de la paz ✌🏼.'
       ,'No hay forma de demostrar que todos vemos los mismos colores.'
       ,'Es probable que más del 99 % de los árboles que miras sigan ahí cuando mueras.'
+      ,'Todo lo que te dijeron cuando eras niño era una mentira destinada a hacerte callar.'
+      ,'Venimos a este mundo solos, asustados y llorando... y luego muy pocas cosas cambian.'
+      ,'No te preocupes. Las cosas empeoran antes de volverse desesperanzadoras.'
     ];
     return quotes[Math.floor(Math.random() * quotes.length)];
   }

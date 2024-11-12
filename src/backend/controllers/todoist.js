@@ -6,7 +6,6 @@ const router = express.Router();
 
 // Middleware function
 const myMiddleware = (req, res, next) => {
-    console.log('Middleware executed');
     next(); // Pass control to the next middleware
 };
 
@@ -95,7 +94,7 @@ router.get('/karma', async (req, res) => {
 });
 
 router.get('/close/:id', async (req, res) => {
-    console.log("close executed");
+    console.log("mark as done executed");
     const taskId = req.params.id;
     const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${taskId}/close`, {
         method: 'POST',
