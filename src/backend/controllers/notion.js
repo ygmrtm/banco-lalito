@@ -192,18 +192,21 @@ async function updateNotionPage(databaseId, notionIdPeople, monto_modif, monto_f
         const data = response.results;
         const pageid = data[0].id;
         let monto_ant = 0;
+        let start_date = new Date().toISOString().slice(0, 10);
         const fullPage = await notion.pages.retrieve({ page_id: pageid });
         if ('properties' in fullPage) {
             const montoModif = fullPage.properties.monto_modif;
+            start_date = fullPage.properties.pred_date.date.start;
             monto_ant = montoModif?.number ?? 0;
         }
         if (monto_fin !== 0) {
-            updated = await notion.pages.update({ page_id: pageid, properties: { monto_fin: { number: monto_fin } } });
+            updated = await notion.pages.update({ page_id: pageid, properties: { monto_fin: { number: monto_fin }, pred_date: { date: {end: new Date().toISOString().slice(0, 10), start: start_date} } } });
         } else if (monto_modif !== 0) {
             updated = await notion.pages.update({ page_id: pageid, properties: { monto_modif: { number: monto_modif + monto_ant } } });
         } 
     } catch (error) {
         console.error('Error updateNotionPage:', error); 
+        throw error;
     }finally{
         return updated;
     }
