@@ -199,8 +199,11 @@ async function updateNotionPage(databaseId, notionIdPeople, monto_modif, monto_f
             start_date = fullPage.properties.pred_date.date.start;
             monto_ant = montoModif?.number ?? 0;
         }
+        // Calculate the number of days between start_date and end_date
+        const end_date = new Date().toISOString().slice(0, 10);
+        const daysBetween = Math.ceil((new Date(end_date) - new Date(start_date)) / (1000 * 60 * 60 * 24)); // Calculate days
         if (monto_fin !== 0) {
-            updated = await notion.pages.update({ page_id: pageid, properties: { monto_fin: { number: monto_fin }, pred_date: { date: {end: new Date().toISOString().slice(0, 10), start: start_date} } } });
+            updated = await notion.pages.update({ page_id: pageid, properties: { monto_fin: { number: monto_fin },plazo: { number: daysBetween }, pred_date: { date: {end: end_date, start: start_date} } } });
         } else if (monto_modif !== 0) {
             updated = await notion.pages.update({ page_id: pageid, properties: { monto_modif: { number: monto_modif + monto_ant } } });
         } 

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.10](https://github.com/ygmrtm/banco-lalito/compare/v2.1.9...v2.1.10) (2024-11-25)
+
+
+### Bug Fixes
+
+* Movement From -> To is not reflecting the From movement in the plazosBlock [#14](https://github.com/ygmrtm/banco-lalito/issues/14) ([4fdaa95](https://github.com/ygmrtm/banco-lalito/commit/4fdaa95916c84b6d70c76485e220cbb1abc72fed))
+
+
+### Chore
+
+* (release): publish ([b472671](https://github.com/ygmrtm/banco-lalito/commit/b472671ab3cb39aebf970e47a4a9661dabee4323))
+
 ### 2.1.9 (2024-11-12)
 
 ### 2.1.8 (2024-11-12)
