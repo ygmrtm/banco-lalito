@@ -350,6 +350,7 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
           data.forEach((item) => { 
               const current = item.properties.current$.formula.number;
               const notionid = item.id;
+              const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
               const properties = {
                   name: { title: [{ text: { content: transactionKey } }] },
                   concept: { rich_text: [{ text: { content:  `${description} | distributed to: ${toTodoist}`} }] },
@@ -358,6 +359,8 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
                   πpol: { relation: [{ id: notionid }] },
               };
               addNotionPageToDatabase(DATABASE_MVN_ID, properties, monto);
+              if (generaBloqueInversion)
+                updateNotionPage(DATABASE_CET_ID, notionid, monto,0);  
           });
       } catch (error) {
           console.error('Error fromProcess:', error);
