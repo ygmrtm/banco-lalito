@@ -149,7 +149,7 @@ async function sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPers
     }
 }
 
-async function addNotionPageToDatabase( databaseId, pageProperties, monto, externalIconURL) {
+async function addNotionPageToDatabase( databaseId, pageProperties, monto, externalIconURL, iconType) {
     const currentDay = new Date().getDay() ;
     const emoji = currentDay % 4 == 0 ? 
          (monto < 0? '✊🏼': '🤘🏼'):(currentDay % 4 == 1 ? 
@@ -157,13 +157,17 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
                   (monto < 0? '📤': '📩'):(currentDay % 4 == 3 ? 
                       (monto < 0? '📉': '📈'):(monto < 0? '🕷️': '🕸️'))));
     //implemement wait for 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 5000)); 
     if(!externalIconURL)
         await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
         icon: {emoji: emoji},});
-    else 
+    else if(iconType.type === 'external') {
         await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
         icon: {external:{url:externalIconURL}},});
+    } else if(iconType.type == 'custom_emoji') {
+        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+            icon: iconType,});
+        }
 }
 
 /**
@@ -216,9 +220,9 @@ async function updateNotionPage(databaseId, notionIdPeople, monto_modif, monto_f
 }
 
 async function updateNotionMissmatch(notionId, monto_antes) {
-console.log("updateNotionMissmatch 🔢 = ", notionId, monto_antes);
-const updated = await notion.pages.update({ page_id: notionId, properties: { antes: { number: monto_antes } } });
-return updated;
+    console.log("updateNotionMissmatch 🔢 = ", notionId, monto_antes);
+    const updated = await notion.pages.update({ page_id: notionId, properties: { antes: { number: monto_antes } } });
+    return updated;
 }
 
 

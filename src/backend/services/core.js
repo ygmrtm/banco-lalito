@@ -52,6 +52,7 @@ function getRandomKey(who, plazo) {
                 who.toLowerCase().includes("stori") ? 'ST' :
                 who.toLowerCase().includes("banamex") ? 'BX' :
                 who.toLowerCase().includes("dinn") ? 'DN' :
+                who.toLowerCase().includes("mercado") ? 'MP' :
                 who.toLowerCase().includes("credito") ? '💳' : '🗿🏷️';
   nameKey += who.toLowerCase().includes("familia") ? 'FM' : 'PR';
 
@@ -530,8 +531,11 @@ async function insertCetesPlazosDB(proper, description, monto_modif){
     const notionid = data[0] && data[0].id;
     let generaBloqueInversion;
     let externalIconURL = '';
+    let iconType = ''
     data.forEach((item) => {  
-      externalIconURL = item.icon.external.url;
+      //console.log(item.icon)
+      iconType = item.icon
+      externalIconURL = iconType.type == 'custom_emoji'? item.icon.custom_emoji.url:item.icon.external.url;
       generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
     });
     
@@ -548,7 +552,7 @@ async function insertCetesPlazosDB(proper, description, monto_modif){
     //console.log(properTimeline);
     if (generaBloqueInversion)
       updateNotionPage(DATABASE_CET_ID, notionid, 0, monto);
-    await addNotionPageToDatabase(DATABASE_CET_ID, properTimeline, 1, externalIconURL);
+    await addNotionPageToDatabase(DATABASE_CET_ID, properTimeline, 1, externalIconURL, iconType);
   } catch (error) {
     console.error('Error insertCetesPlazosDB:', error);
   }
