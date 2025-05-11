@@ -1,4 +1,3 @@
-
 const { addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch } = require("../controllers/notion.js");
 const { templateMail, sendFinancialReport } = require("./mail.js");
 const { Client } = require('@notionhq/client');
@@ -258,9 +257,11 @@ const interesFamiliar = async (ajuste, fromAcc, description) => {
  * @param peopleFrom The entity from which the amount is transferred.
  * @returns A Promise that resolves when the movement operation is completed.
  */
-const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
+const movimiento = async (monto, when, description, peopleTo, peopleFrom, currentValuesMap) => {
     const transactionKey = new Date().toISOString().slice(0, 10).replace(/-/g, '') + Math.floor(100 + Math.random() * 900).toString();
     console.log(`== Executing movimiento for amount: ${monto} | ${when} | ${description} | From[${peopleFrom.length}]=>[${peopleTo.length}]`);
+  
+    
     try {
       let totalForFrom = 0;
       let stringOfTo = '';
@@ -277,12 +278,16 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
         });
         console.log("movimiento 🔢 = ", response.results.length, todoist);
         const data = response.results;
-        //console.log(data);
+        
         data.forEach(async (item) => { 
-          const current = item.properties.current$.formula.number;
+          // Get current value from map if it exists, otherwise get it from item
+          const current = currentValuesMap.has(todoist) 
+            ? currentValuesMap.get(todoist)
+            : item.properties.current$.formula.number;
+            
           const notionid = item.id;
           const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
-          const type = item.properties.type.select.name;
+          // const type = item.properties.type.select.name;
           let properties = {
             name: { title: [{ text: { content: transactionKey } }] },
             concept: { rich_text: [{ text: { content: description } }] },
@@ -291,39 +296,27 @@ const movimiento = async (monto,when, description, peopleTo, peopleFrom) => {
             πpol:{relation:[{id:notionid}]},
             legacyCreationDate:{date:{start:when}},
           };
-          //console.log('properties:', properties);
+          
           addNotionPageToDatabase(DATABASE_MVN_ID, properties, monto);
-          //sleep for 5 secs
-          await sleep(5000);
           if (generaBloqueInversion)
             updateNotionPage(DATABASE_CET_ID, notionid, monto,0);  
-          /*if(type === "A"){
-            const propertiesBAK = {
-                Name: { title: [{ text: { content: transactionKey } }] },
-                description: { rich_text: [{ text: { content: description } }] },
-                mto_to: { number: monto },
-                type: { select: { name: '(mov)imiento' } },
-                πpol_to: { multi_select: [{ name: familyAccount }] },
-                πpol_from: { multi_select: [{ name: mainAccount }] },
-                pending: { checkbox: true }
-              }
-              addNotionPageToDatabase(DATABASE_BAK_ID, propertiesBAK, monto);
-          }*/
 
+          // Store the current value in the map
+          currentValuesMap.set(todoist, current + monto);
+          
         });
         totalForFrom += monto;
         stringOfTo = stringOfTo + '🚻 '+ todoist;
-  
       }
+      
       //in case has a πpol_from generates the opposite monto.
       if(peopleFrom.length > 0)
-        fromProcess(transactionKey, totalForFrom * -1, peopleFrom[0].name, stringOfTo,description);
+        fromProcess(transactionKey, totalForFrom * -1, peopleFrom[0].name, stringOfTo, description);
       
-
     } catch (error) {
       console.error('Error movimiento:', error);
     }
-  };
+};
 
 /**
  * Executes a 'FROM' movement with the provided transaction details.
@@ -732,7 +725,7 @@ const executeLastMvmnts = async (days, todoistToLook) => {
           + `<td><span style="color: ${movement.color};"><strong>${formatter.format(movement.despues)}</strong></span></td>`
           + `<td><em><span style="color: ${movement.color};">${movement.concept}</span></em></td></tr>`;
       });
-      const invInicial = (current - sumIntereses - sumIngresos - sumEgresos);
+      const invInicial = (current - sumIntereses );
       const porcIntereses = ((sumIntereses * 12) / invInicial) * 100;
       const [ultimoPago, ultimoPagoDias] = await getUltimoPago(todoist, notionid);
       const emailContent = await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart, sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos, sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);

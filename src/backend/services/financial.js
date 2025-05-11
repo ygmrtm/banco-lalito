@@ -44,8 +44,6 @@ router.get('/get-pendientes', async (req, res) => {
     }
 });
 
-
-
 // API endpoint for processing pending transactions
 router.post('/pendientes', async (req, res) => {
   const formattedDate = new Date().toISOString().slice(0, 10);
@@ -64,8 +62,11 @@ router.post('/pendientes', async (req, res) => {
       });
   
       const data = response.results;
-  
-      data.forEach((item) => {
+      // Create a map to store current values by todoist
+      const currentValuesMap = new Map();     
+
+      // Process items sequentially with delay
+      for (const item of data) {
         const { id: pageBlgId, properties } = item;
         const { type, mto_to, description, πpol_to, πpol_from, when_final } = properties;
         let markAsDone = true;
@@ -79,7 +80,7 @@ router.post('/pendientes', async (req, res) => {
             mantenimiento(properties);
             break;
           case "(mov)imiento":
-            movimiento(mto_to.number, when_final.formula.date.start, description.rich_text[0].plain_text, πpol_to.multi_select, πpol_from.multi_select);
+            movimiento(mto_to.number, when_final.formula.date.start, description.rich_text[0].plain_text, πpol_to.multi_select, πpol_from.multi_select, currentValuesMap);
             break;
           case "(sob)rinas":
             sobrinas(mto_to.number, description.rich_text[0].plain_text + formattedDate.replace(/-/g, ""), πpol_from.multi_select);
@@ -91,33 +92,12 @@ router.post('/pendientes', async (req, res) => {
             console.log("IDK_WTD");
             markAsDone = false;
         }
+        //console.log(currentValuesMap)
         if (markAsDone) markAsProcessed(pageBlgId);
-      });
 
-      const todoistProcessed = new Set(); // Use a Set for processed todoists
-
-      data.forEach(async (item) => {
-          const { πpol_to } = item.properties;
-          const promises = []; // Array to hold promises for concurrent processing
-      
-          for (const todoist of πpol_to.multi_select) {
-              if (!todoistProcessed.has(todoist.name)) {
-                  const todoistName = todoist.name; // Store the name for later use
-                  const promise = await linkTheFinalAmount(todoistName)
-                      .then(() => {
-                          todoistProcessed.add(todoistName); // Add to Set after successful processing
-                      })
-                      .catch((error) => {
-                          console.error("Error processing todoist:", todoistName, error);
-                      });
-                  promises.push(promise); // Add the promise to the array
-              } else {
-                  console.log("todoist already processed", todoist.name);
-              }
-          }
-          // Wait for all promises to resolve
-          await Promise.all(promises);
-      });
+        // Add 5 second delay between items
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
       
       res.json({ status: "Processed " + data.length + " pending transactions." });
     } catch (error) {
