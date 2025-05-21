@@ -29,19 +29,38 @@ router.get('/get-pendientes', async (req, res) => {
           ],
         },
       });
-      let toProcess = 0, nonToProcess = 0;
+      let toProcess = 0, pendingConfirm = 0;
       const data = response.results;
       data.forEach((item) => {
-        if (item.properties.pending.checkbox) nonToProcess++;
+        if (item.properties.pending.checkbox) pendingConfirm++;
         else toProcess++;
       });
-      res.json({ status: "Pendientes(" + toProcess + ")".concat(nonToProcess > 0 ? ":[" + nonToProcess + "]" : "") 
-        ,total: toProcess + nonToProcess
+      res.json({ status: "Pendientes(" + toProcess + ")".concat(pendingConfirm > 0 ? ":[" + pendingConfirm + "]" : "") 
+        ,total: toProcess + pendingConfirm
+        ,tasks: data
       });
     } catch (error) {
       console.error("Error get-pendientes:", error);    
       res.status(500).json({ status: "Error get-pendientes", error: error.message });
     }
+});
+
+// Add this endpoint to handle task updates
+router.post('/confirm-task/:id', async (req, res) => {
+  const taskId = req.params.id;
+  try {
+      // Logic to update the task's pending status in the database
+      await notion.pages.update({
+          page_id: taskId,
+          properties: {
+              pending: { checkbox: false }
+          }
+      });
+      res.status(200).json({ status: 'Task updated successfully' });
+  } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).json({ status: 'Error updating task', error: error.message });
+  }
 });
 
 // API endpoint for processing pending transactions

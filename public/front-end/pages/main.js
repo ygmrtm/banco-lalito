@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedFile = null;
 
         // Fetch user info from the server
-    (async function() {
+    async function fetchPendingTransactions() {        
         try {
             const response = await fetch('/auth/user');
             if (response.ok && response.status === 200) {
@@ -44,13 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (pendingTransactions.ok) {
                     const result = await pendingTransactions.json();
                     const total = result.total;
-                    console.log('Pending transactions:', result.status);
                     pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendientes"> ${result.status}`;
                     if (total > 0) {
                         document.getElementById('financial-dashboard-container').classList.add('show');
+                        displayPendingMovements(result.tasks);
                     }
                 } else {
-                    console.error('Error fetching pending transactions.');
+                    console.error('Error fetching pending transactions.' );
                 }
             } else {
                 console.error('User not authenticated', response.status);
@@ -62,7 +62,65 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error fetching user info:', error);
         }
-    })();
+    };
+
+    function displayPendingMovements(movement) {
+        const taskGrid = document.getElementById('task-grid');
+        taskGrid.innerHTML = ''; // Clear existing tasks
+
+        movement.forEach(task => {
+            let to = '';
+            let from = '';
+            let description = '';
+            for (const people of task.properties['πpol_to'].multi_select) 
+                to += (to.length > 0 ? ', ' : '') + people.name 
+            for (const people of task.properties['πpol_from'].multi_select) 
+                from += (from.length > 0 ? ', ' : '') + people.name 
+            for (const text of task.properties.description.rich_text)
+                description += (description.length > 0 ? ', ' : '') + text.plain_text;
+            const card = document.createElement('div');
+            card.className = 'task-card ' + (task.properties.pending.checkbox ? 'pending' : 'ready');
+            card.innerHTML = `
+                <h3>$${task.properties.mto_to.number}</h3>
+                <p align="center">${task.properties.type.select.name}</p>
+                <p><em>${description}</em></p>
+                <p>To: ${to}</p>
+                <p>From: ${from}</p>
+            `;
+
+            // Add click event to handle task completion
+            card.addEventListener('click', async () => {
+                if (task.properties.pending.checkbox) {
+                    card.classList.remove('pending');            
+                    await confirmTaskPending(task.id); // Assuming task has an id property
+                }
+            });
+            
+            taskGrid.appendChild(card);
+        });
+    }
+
+    async function confirmTaskPending(taskId) {
+        try {
+            const response = await fetch(`/api/confirm-task/${taskId}`, { method: 'POST' });
+            if (!response.ok) {
+                throw new Error('Failed to update task status');
+            }
+            // Optionally, you can refresh the task list after updating
+            fetchPendingTransactions();
+        } catch (error) {
+            console.error('Error updating task status:', error);
+            // Change card color to red if there's an error
+            const card = document.querySelector(`.task-card[data-id="${taskId}"]`);
+            if (card) {
+                card.classList.remove('completed');
+                card.classList.add('error');
+            }
+        }
+    }
+
+    fetchPendingTransactions();
+
 
     pendientesBtn.addEventListener('click', async () => { // add event listener to pendientes button
         pendientesBtn.disabled = true; // Disable the button during the operation
