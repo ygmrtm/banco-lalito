@@ -17,10 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const banner = document.getElementById('response_banner');
     const pendientesBtn = document.getElementById('pendientes-btn');
     const estadisticasBtn = document.getElementById('estadisticas-btn');
-    const notionBtn = document.getElementById('notion-btn');
     const mandarCorreosBtn = document.getElementById('mandar-correos-btn');
     const daysInput = document.getElementById('days-input');
-    const todoistInput = document.getElementById('todoist-input');
+    //const todoistInput = document.getElementById('todoist-input');
+    const todoistSelect = document.getElementById('todoist-select');
     const dragDropArea = document.getElementById('drag-drop-area');
     const processXlsxBtn = document.getElementById('process-xlsx-btn');
     const todoistBtn = document.getElementById('todoist-btn');
@@ -121,6 +121,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchPendingTransactions();
 
+    // Fetch and populate the todoist-select dropdown
+    async function fetchPeople(peopleType) {
+        try {
+            const response = await fetch(`/notion/get-people/${(peopleType)}`, { method: 'GET' });
+            if (response.ok) {
+                const result = await response.json();
+                const select = document.getElementById('todoist-select');
+                select.innerHTML = ''; // Clear existing options
+    
+                result.people.forEach(person => {
+                    const option = document.createElement('option');
+                    option.value = person.id;
+                    option.textContent = person.name;
+                    select.appendChild(option);
+                });
+                select.value = result.people[0].id; // Select the first person by default
+                select.disabled = false;
+                mandarCorreosBtn.disabled = false;
+            } else {
+                console.error('Error fetching people.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
 
     pendientesBtn.addEventListener('click', async () => { // add event listener to pendientes button
         pendientesBtn.disabled = true; // Disable the button during the operation
@@ -175,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // add event listener to mandar correos button
     mandarCorreosBtn.addEventListener('click', async () => {
         const days = parseInt(daysInput.value, 10);
-        const todoist = todoistInput.value ? todoistInput.value : 'all';
+        const todoist = todoistSelect.value ? todoistSelect.value : 'all';
         // Validate the input
         if (isNaN(days) || days <= 0) {
             banner.style.display = 'block';
@@ -184,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Check if todoist is "all" and alert the user
         if (todoist === 'all') {
-            const confirmSendToAll = confirm('No specific Todoist identifier provided. Emails will be sent to ALL. Do you want to proceed?');
+            const confirmSendToAll = confirm('No specific Todoist ID provided. \nEmails will be sent to ALL. \nDo you want to proceed?');
             if (!confirmSendToAll) {
                 return; // Cancel the operation if the user does not confirm
             }
@@ -451,4 +476,8 @@ experimentalTitle.addEventListener('click', () => {
 
 
     });
+
+    // Call the function to fetch people on page load
+    fetchPeople('A');
+
 });

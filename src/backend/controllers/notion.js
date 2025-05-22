@@ -39,6 +39,44 @@ router.get('/health-check', async (req, res) => {
     }
 });
 
+router.get('/get-people/:people_type', async (req, res) => {
+    const  peopleType = req.params.people_type
+    console.log('going for people: ', peopleType); 
+
+    try {
+        const response = await notion.databases.query({
+            database_id: process.env.DATABASE_PPL_ID, // Use your database ID
+            sorts: [{ property: 'Name', direction: 'ascending' }], // Sort by Name property
+        });
+        response_results = response.results
+        filtered_people = []
+        // filter the people based on the peopleType
+        for (person of response_results) {
+            //console.log('todoist',person.properties.todoist.rich_text[0].plain_text)
+            if(person.properties.type.select.name === peopleType && person.properties.mail.email != null) {
+                //console.log(person)
+                //console.log(person.properties.Name.title[0].text.content, person.properties.mail.email)
+                filtered_people.push(person);
+            }
+        }
+
+        const people = filtered_people.map(item => {
+            return {
+                id: item.properties.todoist.rich_text[0].plain_text,
+                name: item.properties.Name.title[0].text.content // Adjust based on your property structure
+            };
+        });
+
+
+        // Add the "all" option
+        people.unshift({ id: 'all', name: 'All' });
+
+        res.status(200).json({ status: 'success', people: people });
+    } catch (error) {
+        console.error('Error fetching people:', error);
+        res.status(500).json({ status: 'Error fetching people', error: error.message });
+    }
+});
 
 
 async function createNotionClient() {
