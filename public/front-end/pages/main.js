@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }        
 
         mandarCorreosBtn.disabled = true; // Disable the button during the operation
+        todoistSelect.disabled = true;
         banner.style.display = 'block';
         banner.textContent = 'Sending emails...';
 
@@ -225,13 +226,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'todoist': todoist,
+                    'days': days,
                 },
                 body: JSON.stringify({ days: days, todoist: todoist })
             });
 
             if (response.ok) {
                 const result = await response.json();
-                banner.textContent = `Status: ${result.status}`; // Display the response message
+                console.log('response | ' + response)
+                console.log('result | ' + result)
+                banner.textContent = `Status: ${result.status}`;
+                const total_confirmations = result.confirmations.length || 0;
+                banner.textContent += (total_confirmations > 0)
+                    ?' | Total confirmations: ' + total_confirmations
+                    :' | Weird but NO confirmation, 👁️ on this!';
             } else {
                 banner.textContent = 'Error sending emails. Please try again.';
             }
@@ -242,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 banner.style.display = 'none';
                 mandarCorreosBtn.disabled = false; // Re-enable the button after processing
+                todoistSelect.disabled = false;
             }, 3000);
         }
     });

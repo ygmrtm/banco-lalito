@@ -178,11 +178,12 @@ router.post('/estadisticas', async (req, res) => {
 
 router.post('/send-emails', async (req, res) => {
     try {
-      const { days, todoist } = await req.body;
-      console.log("Received days:", days, "Received todoist:", todoist);
-      const responded = await executeLastMvmnts(days, todoist);
-      const message = 'Emails sent successfully ' + responded;
-      res.json({ status: message });
+      const headers_ = await req.headers;
+      const days = headers_.days;
+      const todoist = headers_.todoist;
+      //console.log("Received days:", days, "Received todoist:", todoist);
+      const response = await executeLastMvmnts(days, todoist);
+      res.json({ status: response.status , confirmations: response.confirmations , message: response.message });
     } catch (error) {
         console.error('Error sending emails:', error);
         res.status(500).json({ status: 'Error sending emails', error: error.message });
