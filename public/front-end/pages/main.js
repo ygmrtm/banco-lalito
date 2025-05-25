@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('response | ' + response)
                 console.log('result | ' + result)
                 banner.textContent = `Status: ${result.status}`;
-                const total_confirmations = result.confirmations.length || 0;
+                const total_confirmations = result.confirmations.length  || 0;
                 banner.textContent += (total_confirmations > 0)
                     ?' | Total confirmations: ' + total_confirmations
                     :' | Weird but NO confirmation, 👁️ on this!';
