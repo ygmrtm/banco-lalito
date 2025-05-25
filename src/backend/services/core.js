@@ -1,5 +1,6 @@
 const { addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch } = require("../controllers/notion.js");
 const { templateMail, sendFinancialReport } = require("./mail.js");
+const { getFromCache, setToCache } = require('../controllers/cache');
 const { Client } = require('@notionhq/client');
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -701,6 +702,7 @@ const executeLastMvmnts = async (days, todoistToLook) => {
       const aka = item.properties.Name.title[0].text.content;
       const porcPart = (current * 100) / totalFamiliar;
       const iconUrl = item.icon.external.url;
+      const cacheKey = `bnc:people:confirmations:${todoist}:${daysOfMvmnts}`;
       const from = new Date();
       from.setDate(from.getDate() - days);
       const from30 = new Date();
@@ -733,6 +735,7 @@ const executeLastMvmnts = async (days, todoistToLook) => {
       console.log(`📨 Sending Last Movements in ${days} days for ${todoist} ==`);
       const mail_status = await sendFinancialReport(mail, todoist, emailContent, current < 0, method = 'sendgrid_b');
       msgback.confirmations += mail_status
+      await setToCache(cacheKey, mail_status, 3600 * 24 * 180)
       // = { todoist:{ 'mail_status' : mail_status }}
     });
   } catch (error) {
