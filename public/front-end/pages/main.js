@@ -17,10 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const banner = document.getElementById('response_banner');
     const pendientesBtn = document.getElementById('pendientes-btn');
     const estadisticasBtn = document.getElementById('estadisticas-btn');
-    const notionBtn = document.getElementById('notion-btn');
     const mandarCorreosBtn = document.getElementById('mandar-correos-btn');
     const daysInput = document.getElementById('days-input');
-    const todoistInput = document.getElementById('todoist-input');
+    //const todoistInput = document.getElementById('todoist-input');
+    const todoistSelect = document.getElementById('todoist-select');
     const dragDropArea = document.getElementById('drag-drop-area');
     const processXlsxBtn = document.getElementById('process-xlsx-btn');
     const todoistBtn = document.getElementById('todoist-btn');
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedFile = null;
 
         // Fetch user info from the server
-    (async function() {
+    async function fetchPendingTransactions() {        
         try {
             const response = await fetch('/auth/user');
             if (response.ok && response.status === 200) {
@@ -44,13 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (pendingTransactions.ok) {
                     const result = await pendingTransactions.json();
                     const total = result.total;
-                    console.log('Pending transactions:', result.status);
                     pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendientes"> ${result.status}`;
                     if (total > 0) {
                         document.getElementById('financial-dashboard-container').classList.add('show');
+                        displayPendingMovements(result.tasks);
                     }
                 } else {
-                    console.error('Error fetching pending transactions.');
+                    console.error('Error fetching pending transactions.' );
                 }
             } else {
                 console.error('User not authenticated', response.status);
@@ -62,7 +62,90 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error fetching user info:', error);
         }
-    })();
+    };
+
+    function displayPendingMovements(movement) {
+        const taskGrid = document.getElementById('task-grid');
+        taskGrid.innerHTML = ''; // Clear existing tasks
+
+        movement.forEach(task => {
+            let to = '';
+            let from = '';
+            let description = '';
+            for (const people of task.properties['πpol_to'].multi_select) 
+                to += (to.length > 0 ? ', ' : '') + people.name 
+            for (const people of task.properties['πpol_from'].multi_select) 
+                from += (from.length > 0 ? ', ' : '') + people.name 
+            for (const text of task.properties.description.rich_text)
+                description += (description.length > 0 ? ', ' : '') + text.plain_text;
+            const card = document.createElement('div');
+            card.className = 'task-card ' + (task.properties.pending.checkbox ? 'pending' : 'ready');
+            card.innerHTML = `
+                <h3>$${task.properties.mto_to.number}</h3>
+                <p align="center">${task.properties.type.select.name}</p>
+                <p><em>${description}</em></p>
+                <p>To: ${to}</p>
+                <p>From: ${from}</p>
+            `;
+
+            // Add click event to handle task completion
+            card.addEventListener('click', async () => {
+                if (task.properties.pending.checkbox) {
+                    card.classList.remove('pending');            
+                    await confirmTaskPending(task.id); // Assuming task has an id property
+                }
+            });
+            
+            taskGrid.appendChild(card);
+        });
+    }
+
+    async function confirmTaskPending(taskId) {
+        try {
+            const response = await fetch(`/api/confirm-task/${taskId}`, { method: 'POST' });
+            if (!response.ok) {
+                throw new Error('Failed to update task status');
+            }
+            // Optionally, you can refresh the task list after updating
+            fetchPendingTransactions();
+        } catch (error) {
+            console.error('Error updating task status:', error);
+            // Change card color to red if there's an error
+            const card = document.querySelector(`.task-card[data-id="${taskId}"]`);
+            if (card) {
+                card.classList.remove('completed');
+                card.classList.add('error');
+            }
+        }
+    }
+
+    fetchPendingTransactions();
+
+    // Fetch and populate the todoist-select dropdown
+    async function fetchPeople(peopleType) {
+        try {
+            const response = await fetch(`/notion/get-people/${(peopleType)}`, { method: 'GET' });
+            if (response.ok) {
+                const result = await response.json();
+                const select = document.getElementById('todoist-select');
+                select.innerHTML = ''; // Clear existing options
+    
+                result.people.forEach(person => {
+                    const option = document.createElement('option');
+                    option.value = person.id;
+                    option.textContent = person.name;
+                    select.appendChild(option);
+                });
+                select.value = result.people[0].id; // Select the first person by default
+                select.disabled = false;
+                mandarCorreosBtn.disabled = false;
+            } else {
+                console.error('Error fetching people.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
 
     pendientesBtn.addEventListener('click', async () => { // add event listener to pendientes button
         pendientesBtn.disabled = true; // Disable the button during the operation
@@ -117,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // add event listener to mandar correos button
     mandarCorreosBtn.addEventListener('click', async () => {
         const days = parseInt(daysInput.value, 10);
-        const todoist = todoistInput.value ? todoistInput.value : 'all';
+        const todoist = todoistSelect.value ? todoistSelect.value : 'all';
         // Validate the input
         if (isNaN(days) || days <= 0) {
             banner.style.display = 'block';
@@ -126,13 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Check if todoist is "all" and alert the user
         if (todoist === 'all') {
-            const confirmSendToAll = confirm('No specific Todoist identifier provided. Emails will be sent to ALL. Do you want to proceed?');
+            const confirmSendToAll = confirm('No specific Todoist ID provided. \nEmails will be sent to ALL. \nDo you want to proceed?');
             if (!confirmSendToAll) {
                 return; // Cancel the operation if the user does not confirm
             }
         }        
 
         mandarCorreosBtn.disabled = true; // Disable the button during the operation
+        todoistSelect.disabled = true;
         banner.style.display = 'block';
         banner.textContent = 'Sending emails...';
 
@@ -142,13 +226,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'todoist': todoist,
+                    'days': days,
                 },
                 body: JSON.stringify({ days: days, todoist: todoist })
             });
 
             if (response.ok) {
                 const result = await response.json();
-                banner.textContent = `Status: ${result.status}`; // Display the response message
+                console.log('response | ' + response)
+                console.log('result | ' + result)
+                banner.textContent = `Status: ${result.status}`;
+                const total_confirmations = result.confirmations.length  || 0;
+                banner.textContent += (total_confirmations > 0)
+                    ?' | Total confirmations: ' + total_confirmations
+                    :' | Weird but NO confirmation, 👁️ on this!';
             } else {
                 banner.textContent = 'Error sending emails. Please try again.';
             }
@@ -159,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 banner.style.display = 'none';
                 mandarCorreosBtn.disabled = false; // Re-enable the button after processing
+                todoistSelect.disabled = false;
             }, 3000);
         }
     });
@@ -393,4 +486,8 @@ experimentalTitle.addEventListener('click', () => {
 
 
     });
+
+    // Call the function to fetch people on page load
+    fetchPeople('A');
+
 });

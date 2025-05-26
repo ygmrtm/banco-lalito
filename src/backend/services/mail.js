@@ -42,6 +42,10 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
     ,sumEgresos, sumIngresos, sumIntereses, trs, porcIntereses
     ,ultimoPago, ultimoPagoDias, fromDays, todoistGanador, todoist) {
     try {
+        // Fetch user information to get appVersion
+        const packageJson = require('../../../package.json');
+        const appVersion = packageJson.version;
+    
         const due_date = new Date();
         due_date.setDate(due_date.getDate() + 7);
         const { getRandomKey } = require('./core');
@@ -74,8 +78,9 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
             .replace("{{days}}", days.toString())
             .replace("{{promedioBalance}}", formatter.format(promedioBalance ? promedioBalance : 0))
             .replace("{{transacciones}}", trs)
-            .replace("{{iconUrl}}", iconUrl)
+            //.replace("{{iconUrl}}", iconUrl)
             .replace("{{porcPart}}", porcPart.toFixed(2))
+            .replace("{{appVersion}}", appVersion)
             // Information for the template of debts.
             .replace("{{teveo}}", getRandomTeVeo())
             .replace("{{mote}}", getRandomMote(it))
@@ -167,47 +172,68 @@ function validateEmail(email) {
    * @param isLoanReport A boolean indicating if the report is for a loan.
    */
 
-async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLoanReport) {
+async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLoanReport, mail_method) {
     if (!validateEmail(userEmail)) {
         throw new Error('Invalid email address');
     }
+    const { getDaysBetweenDates } = require('./core');
     const currentDate = new Date().toISOString().slice(0, 10); 
     const subject = isLoanReport
       ? `Reporte de movimientos de su préstamo al ${currentDate}`
       : `Reporte Financiero al ${currentDate} referente a su cuenta ${nombreDeCuenta}`;
     const sendgridAPI = 'https://api.sendgrid.com/v3/mail/send';
-
+    const subject_str = (getDaysBetweenDates(new Date(), new Date(process.env.DATE_LAST_UPDATE)) <= 100 ? '🆕 ' : 'ℹ️ ').concat(subject)
+    console.log('📤 Sending mail', nombreDeCuenta, userEmail);
+    let msgback = { 'status': 'success', 'message': 'Email sent successfully 📫',
+            'name' : nombreDeCuenta+'|'+userEmail+' by'+mail_method,
+            'content' : emailContent
+    };
     try {
-        const { getDaysBetweenDates } = require('./core');
-        const emailData = {
-            personalizations: [
-              {
-                to: [{ email: userEmail }],
-                cc: [{ email: process.env.OWNER_EMAIL }],
-                subject: (getDaysBetweenDates(new Date(), new Date(process.env.DATE_LAST_UPDATE)) <= 100 ? '🆕 ' : 'ℹ️ ').concat(subject),
-              },
-            ],
-            from: { email: process.env.ADMIN_EMAIL, name: 'Banco Lalito' },
-            content: [{type: 'text/html',value: emailContent}],
+        if(mail_method === 'sendgrid_a'){
+          const emailData = {
+              personalizations: [{ to: [{ email: userEmail }],
+                  cc: [{ email: process.env.OWNER_EMAIL }],
+                  subject: subject_str,},],
+              from: { email: process.env.ADMIN_EMAIL, name: 'Banco Lalito' },
+              content: [{type: 'text/html',value: emailContent}],
           };
-        console.log('📤 Sending mail', userEmail, nombreDeCuenta);
-        const response = await fetch(sendgridAPI, {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${process.env.SENDGRID_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(emailData),
-          });
-    
+          const response = await fetch(sendgridAPI, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${process.env.SENDGRID_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(emailData),
+            });
           if (!response.ok) {
             throw new Error(`Failed to send email: ${response.statusText}`);
           }
-          console.log('Email sent successfully');
+        }else if(mail_method === 'sendgrid_b'){
+          const msg = {
+            to: userEmail,
+            cc: process.env.OWNER_EMAIL,
+            from: process.env.ADMIN_EMAIL,
+            subject: subject_str,
+            html: emailContent,
+          }
+          await sgMail
+            .send(msg)
+            .then(data => {
+              console.log('Email sent by SendGrid | ' + data)
+            })
+            .catch((error) => {
+              console.error('Error Sending Mails | ' +  error)
+              msgback.message = error.message;
+              msgback.status = 'error'
+            });
+        }
     } catch (error) {
-        console.error('Error sending email:', error);
-        throw error;
+      console.error('Error executeLastMvmnts:', error);
+      msgback.message = error.message;
+      msgback.status = 'error'
     }
+    //console.log(msgback)
+    return msgback;
 }
   
 /**
@@ -217,7 +243,7 @@ async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLo
  */
   function getRandomQuote() {
     const quotes = [
-       'Escuchar tu canción favorita en la radio al azar es más satisfactorio que ponerla directamente en tu celular.'
+      'Escuchar tu canción favorita en la radio al azar es más satisfactorio que ponerla directamente en tu celular.'
       ,'acaso, "Vete a la cama, te sentirás mejor por la mañana" es la versión humana de "¿Ya lo apagaste y lo volviste a encender?".'
       ,'Tal vez las plantas realmente nos estén cultivando, dándonos oxígeno hasta que finalmente muramos y nos convirtamos en composta que ellas pueden consumir.'
       ,'Se espera que las personas altas usen su tamaño para ayudar a las personas más bajas, pero si una persona alta le pidiera a una persona bajita que le pase algo que se le cayó al suelo, sería insultante.'

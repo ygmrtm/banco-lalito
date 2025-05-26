@@ -1,5 +1,6 @@
 const { addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch } = require("../controllers/notion.js");
 const { templateMail, sendFinancialReport } = require("./mail.js");
+const { getFromCache, setToCache } = require('../controllers/cache');
 const { Client } = require('@notionhq/client');
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -663,7 +664,7 @@ function generaRifa(data){
  * @returns A Promise that resolves once the process is completed
  */
 const executeLastMvmnts = async (days, todoistToLook) => {
-  console.log(`== Sending Last Movements in ${days} days for ${todoistToLook} ==`);
+  let msgback = { 'status': 'success', 'message': 'Last Movements sent successfully.', 'confirmations':[] };
   try {
     const response = await notion.databases.query({  //get all
       database_id: DATABASE_PPL_ID,
@@ -677,7 +678,7 @@ const executeLastMvmnts = async (days, todoistToLook) => {
     let data = response.results;
     const todoistGanador = generaRifa(data);
     const totalFamiliar = data.reduce((acc, item) => acc + (Number(item.properties.current$.formula.number) > 0 ? Number(item.properties.current$.formula.number) : 0), 0);
-    console.log("executeLastMvmnts 🔢 = ", response.results.length, todoistToLook, ' 🎉ganador:', todoistGanador,`totalFamiliar=${totalFamiliar}`);
+    //console.log("executeLastMvmnts 🔢 = ", response.results.length, todoistToLook, ' 🎉ganador:', todoistGanador,`totalFamiliar=${totalFamiliar}`);
     if (todoistToLook !== 'all') {
       const response2 = await notion.databases.query({  //get specific todoist name
         database_id: DATABASE_PPL_ID,
@@ -701,6 +702,7 @@ const executeLastMvmnts = async (days, todoistToLook) => {
       const aka = item.properties.Name.title[0].text.content;
       const porcPart = (current * 100) / totalFamiliar;
       const iconUrl = item.icon.external.url;
+      const cacheKey = `bnc:people:confirmations:${todoist}:${daysOfMvmnts}`;
       const from = new Date();
       from.setDate(from.getDate() - days);
       const from30 = new Date();
@@ -730,11 +732,18 @@ const executeLastMvmnts = async (days, todoistToLook) => {
       const [ultimoPago, ultimoPagoDias] = await getUltimoPago(todoist, notionid);
       const emailContent = await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart, sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos, sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);
       //console.log("emailContent---", emailContent);
-      await sendFinancialReport(mail, todoist, emailContent, current < 0);
+      console.log(`📨 Sending Last Movements in ${days} days for ${todoist} ==`);
+      const mail_status = await sendFinancialReport(mail, todoist, emailContent, current < 0, method = 'sendgrid_b');
+      msgback.confirmations += mail_status
+      await setToCache(cacheKey, mail_status, 3600 * 24 * 180)
+      // = { todoist:{ 'mail_status' : mail_status }}
     });
   } catch (error) {
     console.error('Error executeLastMvmnts:', error);
+    msgback.message = error.message;
+    msgback.status = 'error'
   }
+  return msgback;
 }
 
 /**
@@ -768,7 +777,7 @@ async function getUltimoPago(todoistToLook, notionid) {
 const spanishToEnglishMonths = {
     "ene": "Jan", "feb": "Feb", "mar": "Mar", "abr": "Apr", "may": "May", "jun": "Jun",
     "jul": "Jul", "ago": "Aug", "sep": "Sep", "oct": "Oct", "nov": "Nov", "dic": "Dec"
- };
+};
 
   
 function parseSpanishDate(dateString) {
