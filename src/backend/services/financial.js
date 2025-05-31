@@ -1,6 +1,6 @@
 const express = require('express');
 const { sendToNotionMoonLog } = require('../controllers/notion');
-const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts, parseSpanishDate, executeCCProcess, linkTheFinalAmount } = require('./core');
+const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts, parseSpanishDate, executeCCProcess } = require('./core');
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const multer = require('multer');
@@ -167,7 +167,9 @@ router.post('/estadisticas', async (req, res) => {
             }
         }
     });
-    sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString);      
+    sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString);    
+    const mvmnts_notifications = await executeLastMvmnts( 90, 'all', sendMail=false);    
+    console.log(mvmnts_notifications);
     } catch (error) {
       console.error('Error generateBalance:', error);
     }
@@ -182,7 +184,7 @@ router.post('/send-emails', async (req, res) => {
       const days = headers_.days;
       const todoist = headers_.todoist;
       //console.log("Received days:", days, "Received todoist:", todoist);
-      const response = await executeLastMvmnts(days, todoist);
+      const response = await executeLastMvmnts(days, todoist, sendMail=true);
       res.json({ status: response.status , confirmations: response.confirmations , message: response.message });
     } catch (error) {
         console.error('Error sending emails:', error);

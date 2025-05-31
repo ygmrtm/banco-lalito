@@ -1,5 +1,7 @@
 const { Client } = require('@notionhq/client');
 const { getFromCache, setToCache } = require('./cache');
+const { basename, join } = require('path')
+const { openAsBlob } = require('node:fs');
 const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -75,7 +77,7 @@ router.get('/get-people/:people_type', async (req, res) => {
             // Add the "all" option
             people.unshift({ id: 'all', name: 'All' });
             console.log(`people count ${people.length}`);
-            await setToCache(cacheKey, people, 3800);
+            await setToCache(cacheKey, people, 3600 * 3);
             console.log('Fetched people from source and stored in cache');
         }
         res.status(200).json({ status: 'success', people: people });
@@ -202,17 +204,19 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
                   (monto < 0? '📤': '📩'):(currentDay % 4 == 3 ? 
                       (monto < 0? '📉': '📈'):(monto < 0? '🕷️': '🕸️'))));
     //implemement wait for 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000)); 
+    //await new Promise(resolve => setTimeout(resolve, 5000)); 
+    let created = null;
     if(!externalIconURL)
-        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        created = await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
         icon: {emoji: emoji},});
     else if(iconType.type === 'external') {
-        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        created = await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
         icon: {external:{url:externalIconURL}},});
     } else if(iconType.type == 'custom_emoji') {
-        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        created = await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
             icon: iconType,});
-        }
+    }
+    return created;
 }
 
 /**
@@ -272,4 +276,6 @@ async function updateNotionMissmatch(notionId, monto_antes) {
 
 
 
-module.exports = { sendToNotionMoonLog, addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch, router };
+module.exports = { sendToNotionMoonLog, addNotionPageToDatabase
+    , updateNotionPage, updateNotionMissmatch
+    , router };

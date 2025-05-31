@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "notionapi",
+      "source": "@notionapi/v1#5smt2llerjspp2",
+      "integrity": "sha512-Qu/yACkm9OLPfvcThUiyT5dApepNcgHs6klTY4D+akcD/b/82q4Gfcv6vTR6pRHkqWQDoVYZeKlRKBqHyc/dLg==",
+      "installerVersion": "6.1.3"
+    }
+  ]
+}
