@@ -175,6 +175,12 @@ const properties = {
 
   if (process.env.DATABASE_NOT_ID) {
     response = await addNotionPageToDatabase(process.env.DATABASE_NOT_ID, properties, 1);
+    if (isWinner) {
+      properties.is_read = { checkbox: false };
+      properties.notification_type = { select: { name: 'push' } };
+      properties.email_content = { rich_text: [{ text: { content: '🥳 Cupón ganador:'.concat(promotionCode) } }] };
+      await addNotionPageToDatabase(process.env.DATABASE_NOT_ID, properties, 1);
+    }
   } else {
     console.warn('DATABASE_NOT_ID is not defined in the environment variables');
   }

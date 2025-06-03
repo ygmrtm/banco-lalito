@@ -184,7 +184,7 @@ router.post('/send-emails', async (req, res) => {
       const days = headers_.days;
       const todoist = headers_.todoist;
       //console.log("Received days:", days, "Received todoist:", todoist);
-      const response = await executeLastMvmnts(days, todoist, sendMail=true);
+      const response = await executeLastMvmnts(days, todoist, sendMail=false);
       res.json({ status: response.status , confirmations: response.confirmations , message: response.message });
     } catch (error) {
         console.error('Error sending emails:', error);

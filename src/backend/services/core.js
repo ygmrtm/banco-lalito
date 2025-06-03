@@ -55,13 +55,14 @@ function getRandomKey(who, plazo) {
                 who.toLowerCase().includes("banamex") ? 'BX' :
                 who.toLowerCase().includes("dinn") ? 'DN' :
                 who.toLowerCase().includes("mercado") ? 'MP' :
-                who.toLowerCase().includes("credito") ? '💳' : '🗿🏷️';
-  nameKey += who.toLowerCase().includes("familia") ? 'FM' : 'PR';
+                who.toLowerCase().includes("credito") ? '💳' : '🏷️';
+  nameKey += who.toLowerCase().includes("familia") ? 'FM' : 
+            who.toLowerCase().includes("ahorro") ? '💵' : 'PR';
 
   for (let i = 1000; i >= 1; i /= 10) {
     const digit = Math.floor(plazo / i) % 10;
     const emoji = numberToEmojiMap[digit] || '*️⃣';
-    emojiFinal = emoji + emojiFinal;
+    emojiFinal += emoji;
   }
 
   nameKey += emojiFinal;
@@ -731,7 +732,7 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
           + `<td><span style="color: ${movement.color};">${formatter.format(movement.monto)}</span></td>`
           + `<td><span style="color: ${movement.color};"><strong>${formatter.format(movement.despues)}</strong></span></td>`
           + `<td><em><span style="color: ${movement.color};">${movement.concept}</span></em></td></tr>`;
-          lista_movimientos += `${String(movement_number).padStart(2, '0')} | (${formatter.format(movement.monto)}) ${movement.concept}\n`;
+          lista_movimientos += `💡${String(movement_number).padStart(2, '0')} | (${formatter.format(movement.monto)}) ${movement.concept}\n`;
         movement_number--;
       });
       const invInicial = (current - sumIntereses );
@@ -752,12 +753,12 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
       }
       if(sendMail){
         console.log(`📨 Sending Last Movements in ${days} days for ${todoist} ==`);
-        notification_status = await sendFinancialReport(mail, todoist, emailContent, current < 0, method = 'sendgrid_b');
+        notification_status = await sendFinancialReport(mail, todoist, emailContent, current < 0, method = 'sendgrid_a');
       } 
       if(await doNotHasOpenNotifications(notionid)){
         const today = new Date().toISOString().split('T')[0];
-        const subject = `${todoist === todoistGanador?'🥳 ':''}${aka}, transcurre el día ${daysOfMvmnts} 📆 y así sus inversiones al ${today} 📈 `
-        const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos, sendMail, todoist === todoistGanador);
+        const subject = `${todoist === todoistGanador?'🥳 ':''}${aka}, transcurre el día ${daysOfMvmnts} 📆 y así su ${current < 0 ? 'deuda' : 'ahorro'} al ${today} 📈 `
+        const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos.substring(0, 1999), sendMail, todoist === todoistGanador);
         notification_status.notion = notification_res
       }
       await setToCache(cacheKey, notification_status, notificationTimeOut);
