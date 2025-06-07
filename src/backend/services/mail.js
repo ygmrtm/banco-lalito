@@ -54,8 +54,9 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
         // Use Node.js fs module to read the template file
         let template = await fs.promises.readFile(templateFile, 'utf-8');
         const it = aka.includes('Don') ? 'he' : 'she';
-        const { getRandomKey } = require('./core');
-        const promotionCode = getRandomKey(aka, total_movements);
+        const { getRandomKey, getWeekNumber } = require('./core');
+        const yy_week = new Date().getFullYear() + '' + getWeekNumber(new Date())
+        const promotionCode = getRandomKey(todoist, yy_week);
 
         // Replace template placeholders with actual values
         template = template
@@ -91,7 +92,7 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
             // Information for the coupon
             .replace("{{coupon}}", await templateCoupon(todoist, todoistGanador, promotionCode, due_date));
 
-        return template;
+        return [template, promotionCode];
     } catch (error) {
         console.error("Error templateMail:", error);
         return '';
@@ -130,7 +131,7 @@ async function templateCoupon(todoist, todoistGanador, promotionCode, due_date) 
 
   const properties = {
       Name: { title: [{ text: { content: promotionCode.toString() } }] },
-      description: { rich_text: [{ text: { content: 'Cupón ganador:'.concat(promotionCode) } }] },
+      description: { rich_text: [{ text: { content: '🎁 Cupón ganador:'.concat(promotionCode) } }] },
       mto_to: { number: Number(process.env.PRICE_AMT) },
       pending: { checkbox: true },
       type: { select: { name: '(mov)imiento' } },
@@ -153,10 +154,6 @@ async function saveNotificationMail(notionid, subject, props, html_content, send
   const packageJson = require('../../../package.json');
   const appVersion = packageJson.version;
   props.appVersion = appVersion;
-  const { getRandomKey, getWeekNumber } = require('./core');
-  const yy_week = new Date().getFullYear() + '' + getWeekNumber(new Date())
-  const promotionCode = getRandomKey('ahorro', yy_week);
-  props.promotionCode = promotionCode;
   const template_id = (props.current < 0)
     ?process.env.TEMPLATE_NEG_ID
     :(isWinner)
@@ -179,7 +176,7 @@ const properties = {
     if (isWinner) {
       properties.is_read = { checkbox: false };
       properties.notification_type = { select: { name: 'push' } };
-      properties.email_content = { rich_text: [{ text: { content: '🥳 Cupón ganador:'.concat(promotionCode) } }] };
+      properties.email_content = { rich_text: [{ text: { content: '🥳 Cupón ganador:'.concat(props.promotionCode) } }] };
       const response = await getListOfWinners();
       let winners = '';
       for (const winner of response) {

@@ -738,7 +738,7 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
       const invInicial = (current - sumIntereses );
       const porcIntereses = ((sumIntereses * 12) / invInicial) * 100;
       const [ultimoPago, ultimoPagoDias] = await getUltimoPago(todoist, notionid);
-      const emailContent = await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
+      const [emailContent, promotionCode] = await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
         , sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos
         , sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);
       //console.log("emailContent---", emailContent);
@@ -750,6 +750,7 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
         porcIntereses: porcIntereses,
         sumMovUltimos30Dias: sumMovUltimos30Dias,
         porcPart: porcPart,
+        promotionCode: promotionCode,
       }
       if(sendMail){
         console.log(`📨 Sending Last Movements in ${days} days for ${todoist} ==`);
