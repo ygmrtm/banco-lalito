@@ -1,5 +1,7 @@
 const { Client } = require('@notionhq/client');
 const { getFromCache, setToCache } = require('./cache');
+const { basename, join } = require('path')
+const { openAsBlob } = require('node:fs');
 const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -75,7 +77,7 @@ router.get('/get-people/:people_type', async (req, res) => {
             // Add the "all" option
             people.unshift({ id: 'all', name: 'All' });
             console.log(`people count ${people.length}`);
-            await setToCache(cacheKey, people, 3800);
+            await setToCache(cacheKey, people, 3600 * 3);
             console.log('Fetched people from source and stored in cache');
         }
         res.status(200).json({ status: 'success', people: people });
@@ -202,17 +204,19 @@ async function addNotionPageToDatabase( databaseId, pageProperties, monto, exter
                   (monto < 0? '📤': '📩'):(currentDay % 4 == 3 ? 
                       (monto < 0? '📉': '📈'):(monto < 0? '🕷️': '🕸️'))));
     //implemement wait for 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000)); 
+    //await new Promise(resolve => setTimeout(resolve, 5000)); 
+    let created = null;
     if(!externalIconURL)
-        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        created = await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
         icon: {emoji: emoji},});
     else if(iconType.type === 'external') {
-        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        created = await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
         icon: {external:{url:externalIconURL}},});
     } else if(iconType.type == 'custom_emoji') {
-        await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
+        created = await notion.pages.create({parent: {database_id: databaseId,},properties: pageProperties,
             icon: iconType,});
-        }
+    }
+    return created;
 }
 
 /**
@@ -270,6 +274,41 @@ async function updateNotionMissmatch(notionId, monto_antes) {
     return updated;
 }
 
+router.get('/get-list-of-winners', async (req, res) => {
+    console.log("🎁i'm i n m.f.")
+    const response = await getListOfWinners();
+    let winners = '';
+    for (const winner of response) {
+        console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
+        winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
+    }
 
 
-module.exports = { sendToNotionMoonLog, addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch, router };
+    res.json({ status: response.length , winners: winners });
+});
+
+async function getListOfWinners(){
+    try{
+        const response = await notion.databases.query({
+            database_id: process.env.DATABASE_MVN_ID,
+            filter: {
+                "and": [
+                    { property: 'concept', rich_text: { contains: 'Cupón' } },
+                    { property: 'concept', rich_text: { does_not_contain: 'distributed' } },
+                ]
+            },
+            sorts: [{ property: 'created time', direction: 'descending' }]
+        });
+        //console.log("response", response.results);
+        return response.results;
+    }catch(error){
+        console.error('Error getListOfWinners:', error);
+        throw error;
+    }
+}
+
+
+
+module.exports = { sendToNotionMoonLog, addNotionPageToDatabase
+    , updateNotionPage, updateNotionMissmatch, getListOfWinners
+    , router };

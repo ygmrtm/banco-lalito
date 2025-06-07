@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
-const { addNotionPageToDatabase } = require('../controllers/notion');
+const { addNotionPageToDatabase, getListOfWinners  } = require('../controllers/notion');
 dotenv.config();
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY); // Set your SendGrid API key
@@ -45,11 +45,8 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
         // Fetch user information to get appVersion
         const packageJson = require('../../../package.json');
         const appVersion = packageJson.version;
-    
         const due_date = new Date();
         due_date.setDate(due_date.getDate() + 7);
-        const { getRandomKey } = require('./core');
-
         const __dirname = path.resolve(); // This will give you the current directory
         const templateFile = current < 0
             ? `${__dirname}/docs/templates/prestamos_template.html`
@@ -57,6 +54,7 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
         // Use Node.js fs module to read the template file
         let template = await fs.promises.readFile(templateFile, 'utf-8');
         const it = aka.includes('Don') ? 'he' : 'she';
+        const { getRandomKey } = require('./core');
         const promotionCode = getRandomKey(aka, total_movements);
 
         // Replace template placeholders with actual values
@@ -148,6 +146,53 @@ async function templateCoupon(todoist, todoistGanador, promotionCode, due_date) 
   }
 
   return template;
+}
+
+async function saveNotificationMail(notionid, subject, props, html_content, sendMail, isWinner) {
+  let response = null;
+  const packageJson = require('../../../package.json');
+  const appVersion = packageJson.version;
+  props.appVersion = appVersion;
+  const { getRandomKey, getWeekNumber } = require('./core');
+  const yy_week = new Date().getFullYear() + '' + getWeekNumber(new Date())
+  const promotionCode = getRandomKey('ahorro', yy_week);
+  props.promotionCode = promotionCode;
+  const template_id = (props.current < 0)
+    ?process.env.TEMPLATE_NEG_ID
+    :(isWinner)
+      ?process.env.TEMPLATE_WIN_ID
+      :process.env.TEMPLATE_POS_ID;
+const properties = {
+      subject: { title: [{ text: { content: subject } }] },
+      props: { rich_text: [{ text: { content: JSON.stringify(props) } }] },
+      is_read: { checkbox: sendMail },
+      is_winner: { checkbox: isWinner },
+      notification_type: { select: { name: 'email' } },
+      template: { select: { name: template_id } },
+      send_date: { date: { start: new Date().toISOString().slice(0, 10) } },
+      email_content: { rich_text: [{ text: { content: html_content } }] },
+      πpol: { relation: [{ id: notionid }] },
+  };
+
+  if (process.env.DATABASE_NOT_ID) {
+    response = await addNotionPageToDatabase(process.env.DATABASE_NOT_ID, properties, 1);
+    if (isWinner) {
+      properties.is_read = { checkbox: false };
+      properties.notification_type = { select: { name: 'push' } };
+      properties.email_content = { rich_text: [{ text: { content: '🥳 Cupón ganador:'.concat(promotionCode) } }] };
+      const response = await getListOfWinners();
+      let winners = '';
+      for (const winner of response) {
+          console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
+          winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
+      }      
+      properties.props =  { rich_text: [{ text: { content: winners } }] };
+      await addNotionPageToDatabase(process.env.DATABASE_NOT_ID, properties, 1);
+    }
+  } else {
+    console.warn('DATABASE_NOT_ID is not defined in the environment variables');
+  }
+  return response;
 }
 
 /**
@@ -340,4 +385,4 @@ async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLo
     return images[Math.floor(Math.random() * images.length)];
   }
   
-module.exports = { templateMail, sendFinancialReport };
+module.exports = { templateMail, sendFinancialReport, saveNotificationMail };
