@@ -57,7 +57,7 @@ function getRandomKey(who, plazo) {
                 who.toLowerCase().includes("mercado") ? 'MP' :
                 who.toLowerCase().includes("credito") ? '💳' : '🏷️';
   nameKey += who.toLowerCase().includes("familia") ? 'FM' : 
-            who.toLowerCase().includes("ahorro") ? '💵' : 'PR';
+            who.toLowerCase().includes("ahorro") ? '' : 'PR';
 
   for (let i = 1000; i >= 1; i /= 10) {
     const digit = Math.floor(plazo / i) % 10;
@@ -68,7 +68,7 @@ function getRandomKey(who, plazo) {
   nameKey += emojiFinal;
   nameKey += Math.floor(Math.random() * 900 + 100).toString();
 
-  console.log("namekey:", nameKey);
+  //console.log("namekey:", nameKey);
   return nameKey;
 }
 
@@ -760,8 +760,8 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
         const subject = `${todoist === todoistGanador?'🥳 ':''}${aka}, transcurre el día ${daysOfMvmnts} 📆 y así su ${current < 0 ? 'deuda' : 'ahorro'} al ${today} 📈 `
         const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos.substring(0, 1999), sendMail, todoist === todoistGanador);
         notification_status.notion = notification_res
+        await setToCache(cacheKey, notification_status, notificationTimeOut);
       }
-      await setToCache(cacheKey, notification_status, notificationTimeOut);
       msgback.confirmations += notification_status;
     });
   } catch (error) {

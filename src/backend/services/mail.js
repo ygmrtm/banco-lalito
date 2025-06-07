@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
-const { addNotionPageToDatabase, sendFileUpload, createFileUpload  } = require('../controllers/notion');
+const { addNotionPageToDatabase, getListOfWinners  } = require('../controllers/notion');
 dotenv.config();
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY); // Set your SendGrid API key
@@ -154,7 +154,8 @@ async function saveNotificationMail(notionid, subject, props, html_content, send
   const appVersion = packageJson.version;
   props.appVersion = appVersion;
   const { getRandomKey, getWeekNumber } = require('./core');
-  const promotionCode = getRandomKey(subject, getWeekNumber(new Date()));
+  const yy_week = new Date().getFullYear() + '' + getWeekNumber(new Date())
+  const promotionCode = getRandomKey('ahorro', yy_week);
   props.promotionCode = promotionCode;
   const template_id = (props.current < 0)
     ?process.env.TEMPLATE_NEG_ID
@@ -179,6 +180,13 @@ const properties = {
       properties.is_read = { checkbox: false };
       properties.notification_type = { select: { name: 'push' } };
       properties.email_content = { rich_text: [{ text: { content: '🥳 Cupón ganador:'.concat(promotionCode) } }] };
+      const response = await getListOfWinners();
+      let winners = '';
+      for (const winner of response) {
+          console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
+          winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
+      }      
+      properties.props =  { rich_text: [{ text: { content: winners } }] };
       await addNotionPageToDatabase(process.env.DATABASE_NOT_ID, properties, 1);
     }
   } else {

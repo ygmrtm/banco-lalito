@@ -274,8 +274,41 @@ async function updateNotionMissmatch(notionId, monto_antes) {
     return updated;
 }
 
+router.get('/get-list-of-winners', async (req, res) => {
+    console.log("🎁i'm i n m.f.")
+    const response = await getListOfWinners();
+    let winners = '';
+    for (const winner of response) {
+        console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
+        winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
+    }
+
+
+    res.json({ status: response.length , winners: winners });
+});
+
+async function getListOfWinners(){
+    try{
+        const response = await notion.databases.query({
+            database_id: process.env.DATABASE_MVN_ID,
+            filter: {
+                "and": [
+                    { property: 'concept', rich_text: { contains: 'Cupón' } },
+                    { property: 'concept', rich_text: { does_not_contain: 'distributed' } },
+                ]
+            },
+            sorts: [{ property: 'created time', direction: 'descending' }]
+        });
+        //console.log("response", response.results);
+        return response.results;
+    }catch(error){
+        console.error('Error getListOfWinners:', error);
+        throw error;
+    }
+}
+
 
 
 module.exports = { sendToNotionMoonLog, addNotionPageToDatabase
-    , updateNotionPage, updateNotionMissmatch
+    , updateNotionPage, updateNotionMissmatch, getListOfWinners
     , router };
