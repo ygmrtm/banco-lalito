@@ -77,8 +77,8 @@ router.get('/get-people/:people_type', async (req, res) => {
             // Add the "all" option
             people.unshift({ id: 'all', name: 'All' });
             console.log(`people count ${people.length}`);
-            await setToCache(cacheKey, people, 3600 * 3);
-            console.log('Fetched people from source and stored in cache');
+            await setToCache(cacheKey, people, 3600 * 24 * 15);
+            console.log('Fetched people from source and stored in cache'); 
         }
         res.status(200).json({ status: 'success', people: people });
     } catch (error) {
