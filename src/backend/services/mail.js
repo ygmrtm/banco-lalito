@@ -129,7 +129,7 @@ async function templateCoupon(todoist, todoistGanador, promotionCode, due_date) 
       .replace("{{dueDate}}", due_date.toISOString().slice(0, 10))
       .replace("{{nombreCuenta}}", todoist);
 
-  const properties = {
+  let properties = {
       Name: { title: [{ text: { content: promotionCode.toString() } }] },
       description: { rich_text: [{ text: { content: '🎁 Cupón ganador:'.concat(promotionCode) } }] },
       mto_to: { number: Number(process.env.PRICE_AMT) },
@@ -141,6 +141,9 @@ async function templateCoupon(todoist, todoistGanador, promotionCode, due_date) 
   };
 
   if (process.env.DATABASE_BAK_ID) {
+    await addNotionPageToDatabase(process.env.DATABASE_BAK_ID, properties, 1);
+    properties.πpol_to.multi_select[0].name = 'inversion.banamex.familiar';
+    properties.πpol_from.multi_select[0].name = 'perfiles';
     await addNotionPageToDatabase(process.env.DATABASE_BAK_ID, properties, 1);
   } else {
     console.warn('DATABASE_BAK_ID is not defined in the environment variables');

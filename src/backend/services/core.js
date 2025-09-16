@@ -230,7 +230,7 @@ const interesFamiliar = async (ajuste, fromAcc, description) => {
             const pieceOfPay = ajuste * pq;
             const properties = {
                 Name: { title: [{ text: { content: todoist }}]},
-                description: { rich_text: [{ text: { content: `${description} | origen:${fromAcc} | $${pieceOfPay.toFixed(2)}` }}]},
+                description: { rich_text: [{ text: { content: `${description} | origen:${fromAcc}` }}]},
                 mto_to: { number: pieceOfPay },
                 type: { select: { name: '(mov)imiento' }},
                 πpol_to: { multi_select: [{ name: todoist }]}
@@ -784,7 +784,7 @@ async function doNotHasOpenNotifications(notionid) {
               });  
     return response.results.length <= 0;
   }catch (error) {
-    console.error('Error doNotHasOpenNotifications:', error);
+    //console.error('Error doNotHasOpenNotifications:', error);
     return false;
   }
 }
