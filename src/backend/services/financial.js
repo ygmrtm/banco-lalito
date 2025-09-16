@@ -35,9 +35,11 @@ router.get('/get-pendientes', async (req, res) => {
         if (item.properties.pending.checkbox) pendingConfirm++;
         else toProcess++;
       });
-      res.json({ status: "Pendientes(" + toProcess + ")".concat(pendingConfirm > 0 ? ":[" + pendingConfirm + "]" : "") 
+      res.json({ status: "Pendents | " + toProcess + " ✅ " + (pendingConfirm > 0 ? pendingConfirm + " | ⏳ "  : "") 
         ,total: toProcess + pendingConfirm
         ,tasks: data
+        ,readytoprocess:toProcess
+        ,pendingConfirm:pendingConfirm
       });
     } catch (error) {
       console.error("Error get-pendientes:", error);    

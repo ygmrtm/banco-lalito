@@ -76,10 +76,16 @@
     overflow-y: auto;      /* shows vertical scrollbar when needed */
   }
   .button-group {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      align-items: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    align-items: center;
+  }  
+  .button-group-three {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: center;
   }
   .button{
     padding: 10px 20px;
@@ -221,6 +227,7 @@
     transition: max-height 0.3s ease-out;
     padding: 0 10px;
     border: 0px solid #ccc;
+    width: 100%;
     border-radius: 5px;
     margin-bottom: 0px;
 }
