@@ -10,6 +10,8 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 dotenv.config();
 const router = express.Router();
+const DATABASE_NOT_ID = process.env.DATABASE_NOT_ID || '';
+
 
 if (!process.env.NOTION_TOKEN || !process.env.DATABASE_PPL_ID || !process.env.DATABASE_BAK_ID || !process.env.SENDGRID_API_KEY) {
     throw new Error('Missing required environment variables for authentication.');
@@ -35,7 +37,7 @@ router.get('/get-pendientes', async (req, res) => {
         if (item.properties.pending.checkbox) pendingConfirm++;
         else toProcess++;
       });
-      res.json({ status: "Pendents | " + toProcess + " ✅ " + (pendingConfirm > 0 ? pendingConfirm + " | ⏳ "  : "") 
+      res.json({ status: "Pendents | " + toProcess + " ✅" + (pendingConfirm > 0 ? " | "+pendingConfirm + " ⏳ "  : "") 
         ,total: toProcess + pendingConfirm
         ,tasks: data
         ,readytoprocess:toProcess
@@ -127,8 +129,6 @@ router.post('/pendientes', async (req, res) => {
     }
 });
 
-
-
 router.post('/estadisticas', async (req, res) => {
   console.log(`== Executing general Balance`);
   try {
@@ -179,19 +179,40 @@ router.post('/estadisticas', async (req, res) => {
 
 });
 
-
 router.post('/send-emails', async (req, res) => {
     try {
       const headers_ = await req.headers;
       const days = headers_.days;
       const todoist = headers_.todoist;
-      //console.log("Received days:", days, "Received todoist:", todoist);
       const response = await executeLastMvmnts(days, todoist, sendMail=false);
       res.json({ status: response.status , confirmations: response.confirmations , message: response.message });
     } catch (error) {
         console.error('Error sending emails:', error);
         res.status(500).json({ status: 'Error sending emails', error: error.message });
     }
+});
+
+router.get('/get-notifications/:is_read', async (req, res) => {
+  const is_read = req.params.is_read != 'false';  
+  const formattedDate = new Date().toISOString().slice(0, 10);
+  console.log("get-notifications:", formattedDate);
+  try {
+    const response = await notion.databases.query({  
+      database_id: DATABASE_NOT_ID,
+      filter: {"and": [{ property: 'is_read', checkbox: { equals: is_read } },
+                      { property: 'notification_type', select: { equals: "email" } },
+                ]}, 
+              sorts: [{ property: 'send_date', direction: 'descending' }]
+              });  
+    const data = response.results;
+    /*data.forEach((item) => {
+      console.log(item.properties.todoist.rollup.array[0].rich_text[0].plain_text);
+    });*/
+    res.json({ notifications: data });
+  } catch (error) {
+    console.error("Error get-notifications:", error);    
+    res.status(500).json({ status: "Error get-notifications", error: error.message });
+  }
 });
 
 // Endpoint to process the uploaded XLSX file

@@ -52,6 +52,8 @@ function getRandomKey(who, plazo) {
                 who.toLowerCase().includes("finsus") ? 'FN' :
                 who.toLowerCase().includes("cajita") ? 'NU' :
                 who.toLowerCase().includes("stori") ? 'ST' :
+                who.toLowerCase().includes("gbm") ? 'GB' :
+                who.toLowerCase().includes("bitso") ? 'BT' :
                 who.toLowerCase().includes("banamex") ? 'BX' :
                 who.toLowerCase().includes("dinn") ? 'DN' :
                 who.toLowerCase().includes("mercado") ? 'MP' :
@@ -657,7 +659,9 @@ function generaRifa(data){
         //array.push("👻.💀");
     } 
   });
-  return array[Math.floor(Math.random() * array.length)];
+  const picked =  Math.floor(Math.random() * array.length);
+  //console.log(`picked ${picked} from ${array.length}`)
+  return array[picked];
 }
 
 /**
@@ -668,7 +672,7 @@ function generaRifa(data){
  * @returns A Promise that resolves once the process is completed
  */
 const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
-  let msgback = { 'status': 'success', 'message': 'Last Movements sent successfully.', 'confirmations':[] };
+  let msgback = { 'status': '✅ Success', 'message': '', 'confirmations':[] };
   try {
     const response = await notion.databases.query({  //get all
       database_id: DATABASE_PPL_ID,
@@ -680,7 +684,7 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
       }
     });
     let data = response.results;
-    const todoistGanador = generaRifa(data);
+    const todoistGanador = await generaRifa(data);
     const totalFamiliar = data.reduce((acc, item) => acc + (Number(item.properties.current$.formula.number) > 0 ? Number(item.properties.current$.formula.number) : 0), 0);
     //console.log("executeLastMvmnts 🔢 = ", response.results.length, todoistToLook, ' 🎉ganador:', todoistGanador,`totalFamiliar=${totalFamiliar}`);
     if (todoistToLook !== 'all') {
@@ -696,7 +700,7 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
       });
       data = response2.results;
     }
-    data.forEach(async (item) => {
+    await Promise.all(data.map(async (item) => {
       const notionid = item.id;
       const todoist = item.properties.todoist.rich_text[0].plain_text;
       const mail = item.properties.mail.email;
@@ -711,64 +715,69 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
       from.setDate(from.getDate() - days);
       const from30 = new Date();
       from30.setDate(from30.getDate() - 30);
-      const mvmnts = await getMovements(notionid, todoist, from, new Date());
-      let sumMovUltimos30Dias = 0;
-      let promedioBalance = 0, total = 0;
-      let sumIngresos = 0, sumEgresos = 0, sumIntereses = 0;
-      let trs = '';
-      let lista_movimientos = '';
-      let movement_number = mvmnts.length;
-      mvmnts.forEach((movement) => {
-        sumMovUltimos30Dias += (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
-        promedioBalance += movement.despues;
-        total++;
-        if (movement.monto < 0) {
-          sumEgresos += (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
-        } else {
-          sumIngresos += !movement.concept.toLowerCase().includes('intereses') && (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
-        }
-        sumIntereses += movement.concept.toLowerCase().includes('intereses') && (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
-        trs += `<tr><td><span style="color: ${movement.color};">${movement.mvmnt_date}</span></td>`
-          + `<td><span style="color: ${movement.color};">${formatter.format(movement.monto)}</span></td>`
-          + `<td><span style="color: ${movement.color};"><strong>${formatter.format(movement.despues)}</strong></span></td>`
-          + `<td><em><span style="color: ${movement.color};">${movement.concept}</span></em></td></tr>`;
-          lista_movimientos += `💡${String(movement_number).padStart(2, '0')} | (${formatter.format(movement.monto)}) ${movement.concept}\n`;
-        movement_number--;
-      });
-      const invInicial = (current - sumIntereses );
-      const porcIntereses = ((sumIntereses * 12) / invInicial) * 100;
-      const [ultimoPago, ultimoPagoDias] = await getUltimoPago(todoist, notionid);
-      const [emailContent, promotionCode] = await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
-        , sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos
-        , sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);
-      //console.log("emailContent---", emailContent);
-      let notification_status = {}
-      const props = { current: current ,
-        sumEgresos: sumEgresos,
-        sumIngresos: sumIngresos,
-        sumIntereses: sumIntereses,
-        porcIntereses: porcIntereses,
-        sumMovUltimos30Dias: sumMovUltimos30Dias,
-        porcPart: porcPart,
-        promotionCode: promotionCode,
-      }
-      if(sendMail){
-        console.log(`📨 Sending Last Movements in ${days} days for ${todoist} ==`);
-        notification_status = await sendFinancialReport(mail, todoist, emailContent, current < 0, method = 'sendgrid_a');
-      } 
       if(await doNotHasOpenNotifications(notionid)){
+        const mvmnts = await  getMovements(notionid, todoist, from, new Date());
+        let sumMovUltimos30Dias = 0;
+        let promedioBalance = 0, total = 0;
+        let sumIngresos = 0, sumEgresos = 0, sumIntereses = 0;
+        let trs = '';
+        let lista_movimientos = '';
+        let movement_number = mvmnts.length;
+        // Process movements synchronously since they don't have async operations
+        mvmnts.forEach((movement) => {
+          sumMovUltimos30Dias += (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
+          promedioBalance += movement.despues;
+          total++;
+          if (movement.monto < 0) {
+            sumEgresos += (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
+          } else {
+            sumIngresos += !movement.concept.toLowerCase().includes('intereses') && (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
+          }
+          sumIntereses += movement.concept.toLowerCase().includes('intereses') && (new Date(movement.mvmnt_date) >= from30) ? movement.monto : 0;
+          trs += `<tr><td><span style="color: ${movement.color};">${movement.mvmnt_date}</span></td>`
+            + `<td><span style="color: ${movement.color};">${formatter.format(movement.monto)}</span></td>`
+            + `<td><span style="color: ${movement.color};"><strong>${formatter.format(movement.despues)}</strong></span></td>`
+            + `<td><em><span style="color: ${movement.color};">${movement.concept}</span></em></td></tr>`;
+            lista_movimientos += `💡${String(movement_number).padStart(2, '0')} | (${formatter.format(movement.monto)}) ${movement.concept}\n`;
+          movement_number--;
+        });
+        const invInicial = (current - sumIntereses );
+        const porcIntereses = ((sumIntereses * 12) / invInicial) * 100;
+        const [ultimoPago, ultimoPagoDias] =  await getUltimoPago(todoist, notionid);
+        const [emailContent, promotionCode] =  await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
+          , sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos
+          , sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);
+        //console.log("emailContent---", emailContent);
+        let notification_status = {}
+        const props = { current: current ,
+          sumEgresos: sumEgresos,
+          sumIngresos: sumIngresos,
+          sumIntereses: sumIntereses,
+          porcIntereses: porcIntereses,
+          sumMovUltimos30Dias: sumMovUltimos30Dias,
+          porcPart: porcPart,
+          promotionCode: promotionCode,
+        }
+        /*if(sendMail){
+          console.log(`📨 Sending Last Movements in ${days} days for ${todoist} ==`);
+          notification_status = await sendFinancialReport(mail, todoist, emailContent, current < 0, method = 'sendgrid_a');
+        } */
         const today = new Date().toISOString().split('T')[0];
         const subject = `${todoist === todoistGanador?'🥳 ':''}${aka}, transcurre el día ${daysOfMvmnts} 📆 y así su ${current < 0 ? 'deuda' : 'ahorro'} al ${today} 📈 `
         const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos.substring(0, 1999), sendMail, todoist === todoistGanador);
         notification_status.notion = notification_res
         await setToCache(cacheKey, notification_status, notificationTimeOut);
+        msgback.confirmations.push(notification_status);
+        msgback.message += `${todoist === todoistGanador?'🥳 ':''}${aka} 🚻`
+      }else{
+        msgback.message += 'nothing generated due '+todoist+' 🔔 is already there 🚻';
+        msgback.status = '⚠️ Warning'          
       }
-      msgback.confirmations += notification_status;
-    });
+    }));
   } catch (error) {
     console.error('Error executeLastMvmnts:', error);
     msgback.message = error.message;
-    msgback.status = 'error'
+    msgback.status = '❌ Error'
   }
   return msgback;
 }
@@ -797,7 +806,7 @@ async function doNotHasOpenNotifications(notionid) {
  * @returns A tuple containing the last payment amount and the number of days since the last payment.
  */
 async function getUltimoPago(todoistToLook, notionid) {
-  console.log(`== Getting the Last Movements for ${todoistToLook} | ${notionid} ==`);
+  //console.log(`== Getting the Last Movements for ${todoistToLook} | ${notionid} ==`);
   let ultimoPago = 0, ultimoPagoDias = 0;  
   try {
     const from365 = new Date();
@@ -837,7 +846,7 @@ function parseSpanishDate(dateString) {
  * @returns {Promise<boolean>} - A promise that resolves to true if records were processed, false otherwise.
  */
 const executeCCProcess = async (cleanedData) => {
-  console.log(`== executeCCProcess ==`);
+  //console.log(`== executeCCProcess ==`);
   try {
     if (cleanedData.length === 0) {
       console.log("No records to process.");

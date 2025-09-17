@@ -162,7 +162,7 @@ async function saveNotificationMail(notionid, subject, props, html_content, send
     :(isWinner)
       ?process.env.TEMPLATE_WIN_ID
       :process.env.TEMPLATE_POS_ID;
-const properties = {
+  let properties = {
       subject: { title: [{ text: { content: subject } }] },
       props: { rich_text: [{ text: { content: JSON.stringify(props) } }] },
       is_read: { checkbox: sendMail },
@@ -180,11 +180,13 @@ const properties = {
       properties.is_read = { checkbox: false };
       properties.notification_type = { select: { name: 'push' } };
       properties.email_content = { rich_text: [{ text: { content: '🥳 Cupón ganador:'.concat(props.promotionCode) } }] };
-      const response = await getListOfWinners();
+      response2 = await getListOfWinners();
       let winners = '';
-      for (const winner of response) {
-          console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
-          winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
+      for (const winner of response2) {
+          //console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
+          if(winner.properties.todoist.rollup.array[0].rich_text[0].plain_text != 'inversion.banamex.familiar'){
+            winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
+          }
       }      
       properties.props =  { rich_text: [{ text: { content: winners } }] };
       await addNotionPageToDatabase(process.env.DATABASE_NOT_ID, properties, 1);
