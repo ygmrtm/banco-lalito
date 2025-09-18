@@ -44,7 +44,7 @@ router.get('/health-check', async (req, res) => {
 
 router.get('/get-people/:people_type', async (req, res) => {
     const  peopleType = req.params.people_type
-    console.log('going for people: ', peopleType); 
+    //console.log('going for people: ', peopleType); 
     const cacheKey = `bnc:people:${peopleType}`; // Unique key for caching  
     try {
         let people = null;
@@ -75,7 +75,7 @@ router.get('/get-people/:people_type', async (req, res) => {
                 };
             });
             // Add the "all" option
-            people.unshift({ id: 'all', name: 'All' });
+            people.unshift({ id: 'all', name: 'Tothom' });
             console.log(`people count ${people.length}`);
             await setToCache(cacheKey, people, 3600 * 24 * 15);
             console.log('Fetched people from source and stored in cache'); 
@@ -279,7 +279,7 @@ router.get('/get-list-of-winners', async (req, res) => {
     const response = await getListOfWinners();
     let winners = '';
     for (const winner of response) {
-        console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
+        //console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
         winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
     }
 

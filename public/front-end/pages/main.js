@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const aboutBtn = document.getElementById('about-icon');
     let selectedFile = null;
 
-        // Fetch user info from the server
     async function fetchPendingTransactions() {        
         try {
             const response = await fetch('/auth/user');
@@ -153,13 +152,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function fetchNotifications() {        
+        try {
+            const response = await fetch('/auth/user');
+            if (response.ok && response.status === 200) {
+                const notifications = await fetch('/api/get-notifications/false', { method: 'GET' });
+                generateNotificacionsBtn.disabled=true;
+                if (notifications.ok) {
+                    const result_not = await notifications.json();
+                    people_in_select = await fetchPeople('A');
+                    //console.log("💀 \n",result_not);
+                    const tothom = people_in_select.tothom;
+                    const pendingToGenerate = tothom - result_not.notifications.length;
+                    generateNotificacionsBtn.disabled=pendingToGenerate <= 0;
+                    generateNotificacionsBtn.innerHTML = `<img src="../images/notifications-icon-`+generateNotificacionsBtn.disabled+`.png" alt="Notificacions"> Generar ${pendingToGenerate} notificacions`;
+                } else {
+                    console.error('Error fetching pending notifications.' );
+                }
+            } else {
+                console.error('User not authenticated', response.status);
+                document.getElementById('user-name').innerHTML = `<span>User not authenticated</span>`;
+                document.getElementById('user-icon').src = '../images/user-icon.png';
+                window.location.href = '/';
+            }
+        } catch (error) {
+            console.error('Error fetching notifications info:', error);
+        }
+    };    
 
-    fetchPendingTransactions();
 
     // Fetch and populate the todoist-select dropdown
     async function fetchPeople(peopleType) {
         try {
             const response = await fetch(`/notion/get-people/${(peopleType)}`, { method: 'GET' });
+            let not_inactive = 0;
             if (response.ok) {
                 const result = await response.json();
                 const select = document.getElementById('todoist-select');
@@ -170,10 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     option.value = person.id;
                     option.textContent = person.name;
                     select.appendChild(option);
+                    not_inactive += (person.name.includes('inactive') || person.name.includes('Tothom') ? 0 : 1);
                 });
                 select.value = result.people[0].id; // Select the first person by default
                 select.disabled = false;
                 //generateNotificacionsBtn.disabled = false;
+                //console.log("not inactive ", not_inactive); 
+                return {people:result.people, tothom:not_inactive}
             } else {
                 console.error('Error fetching people.');
             }
@@ -269,30 +298,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 const result = await response.json();
-                const total_pending_to_generate = result.total_pending_to_generate;
-                const total_generated_not_sent = result.total_generated_not_sent;
-                const total_sit_to_be_sent = result.total_sit_to_be_sent;
-                generateNotificacionsBtn.innerHTML = `<img src="../images/notifications-icon.png" alt="Generate Notifications"> ${result.status}`;
-
-                console.log('response | ' + response)
-                console.log('result | ' + result)
-                banner.textContent = `Estat: ${result.status}`;
-                const total_confirmations = result.confirmations.length  || 0;
-                banner.textContent += (total_confirmations > 0)
-                    ?' | Total confirmations: ' + total_confirmations
-                    :' | Weird but NO confirmation, 👁️ on this!';
+                //console.log(result)
+                const total_generated_not_sent = result.confirmations.length || 0;
+                banner.textContent = `Status: ${result.status}`;
+                fetchNotifications();
+                banner.textContent += ((total_generated_not_sent > 0
+                    ?' | Total Generated: ' + total_generated_not_sent
+                    :' | Nothing generated 👁️ ' )
             } else {
-                banner.textContent = 'Error sending emails. Please try again.';
+                banner.textContent = 'Error creating notifications. Please try again.';
             }
         } catch (error) {
-            banner.textContent = 'An error occurred while sending emails.';
+            banner.textContent = 'An error occurred while creating notifications.';
             console.error('Error:', error);
         } finally {
             setTimeout(() => {
                 banner.style.display = 'none';
-                generateNotificacionsBtn.disabled = false; // Re-enable the button after processing
                 todoistSelect.disabled = false;
-            }, 3000);
+            }, 6000);
         }
     });
 
@@ -527,7 +550,10 @@ experimentalTitle.addEventListener('click', () => {
 
     });
 
-    // Call the function to fetch people on page load
-    fetchPeople('A');
+        // Call the function to fetch people on page load
+    // fetchPeople('A');
+    fetchNotifications();
+    fetchPendingTransactions();
+
 
 });
