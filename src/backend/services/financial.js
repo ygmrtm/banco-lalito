@@ -50,17 +50,21 @@ router.get('/get-pendientes', async (req, res) => {
 });
 
 // Add this endpoint to handle task updates
-router.post('/confirm-task/:id', async (req, res) => {
+router.post('/confirm-task/:id/:status/:monto', async (req, res) => {
   const taskId = req.params.id;
+  const status = req.params.status;  
+  const monto = parseFloat(req.params.monto || 0);
   try {
       // Logic to update the task's pending status in the database
       await notion.pages.update({
           page_id: taskId,
           properties: {
-              pending: { checkbox: false }
+              pending: { checkbox: (status === 'pending')?true:false },
+              processed: { checkbox: (status === 'pending')?false:((status === 'ready')?false:true) },
+              mto_to: { number: monto}
           }
       });
-      res.status(200).json({ status: 'Task updated successfully' });
+      res.status(200).json({ status: "La tasca s'ha actualitzat correctament" });
   } catch (error) {
       console.error('Error updating task:', error);
       res.status(500).json({ status: 'Error updating task', error: error.message });
