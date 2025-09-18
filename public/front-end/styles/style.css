@@ -76,10 +76,16 @@
     overflow-y: auto;      /* shows vertical scrollbar when needed */
   }
   .button-group {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      align-items: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    align-items: center;
+  }  
+  .button-group-three {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: center;
   }
   .button{
     padding: 10px 20px;
@@ -94,7 +100,7 @@
     color: #fff;
     transition: all 0.2s ease;
     margin: 10px;
-
+    box-shadow: 10px 10px 14px -8px #91a4c3;
   }
   .close-button{
     padding: 10px 20px;
@@ -148,7 +154,7 @@
     margin-top: 10px;
     margin-bottom: 10px;
     width: 100%;
-    box-shadow: 5px 10px 20px rgba(80, 118, 234, 0.15);
+    box-shadow: 10px 10px 14px -8px #91a4c3;
   }
   /* Change the style when dragging files over */
   .drag-drop-area.drag-over {
@@ -162,6 +168,7 @@
       margin-top: 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      box-shadow: 10px 10px 14px -8px #91a4c3;
   }
   .footer {
       background-color: white;
@@ -221,6 +228,7 @@
     transition: max-height 0.3s ease-out;
     padding: 0 10px;
     border: 0px solid #ccc;
+    width: 100%;
     border-radius: 5px;
     margin-bottom: 0px;
 }

@@ -1,101 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
-  <title>Banco Lalito 🍂 Dashboard</title>
-  <link rel="stylesheet" href="../styles/style.css">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sixtyfour+Convergence:BLED,SCAN,XELA,YELA@0..100,-53..100,-100..100,-100..100');
-  </style>
-  <style>
-    .sixtyfour-convergence-prompt {
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <title>Banc Lalito 🍂 Tauler de Control</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Sixtyfour+Convergence:BLED,SCAN,XELA,YELA@0..100,-53..100,-100..100,-100..100');
+    </style>
+    <style>
+      .sixtyfour-convergence-prompt {
       font-family: "Sixtyfour Convergence", sans-serif;
       font-optical-sizing: auto;
       font-weight: 300;
       font-style: normal;
       font-variation-settings:
-        "BLED" 0,
-        "SCAN" 0,
-        "XELA" 0,
-        "YELA" 0;
-    } 
-  </style>
-</head>
-<body>
-  <!-- Top banner for status messages -->
-  <div class="banner" id="response_banner">Status messages will appear here</div>
-  <div class="user-info">
-    <div><img src="../images/bank-logo.png" alt="Bank Logo" id="about-icon" style="border-radius: 50%; margin: 0px 10px;max-width: 20px;max-height: 20px;"></div>
-    <div id="user-name"><span></span></div>  
-    <div class="flip-container" id="user-icon-container" style="cursor: pointer;">
-      <div class="flipper">
+      "BLED" 0,
+      "SCAN" 0,
+      "XELA" 0,
+      "YELA" 0;
+      } 
+    </style>
+  </head>
+  <body>
+    <!-- Top banner for status messages -->
+    <div class="banner" id="response_banner">Els missatges d'estat apareixeran aquí</div>
+    <div class="user-info">
+      <div><img src="../images/bank-logo.png" alt="Bank Logo" id="about-icon" style="border-radius: 50%; margin: 0px 10px;max-width: 20px;max-height: 20px;"></div>
+      <div id="user-name"><span></span></div>
+      <div class="flip-container" id="user-icon-container" style="cursor: pointer;">
+        <div class="flipper">
           <img src="../images/user-icon.png" alt="User" id="user-icon" style="border-radius: 40%; margin: 0px 10px;max-width: 20px;max-height: 20px;">
+        </div>
       </div>
     </div>
-  </div>
-  <!-- Financial dashboard -->
-  <div class="content">
-      <div class="section">
-      <h2 class="title collapsible">Financial Dashboard</h2>
-      <div class="contentCollapsible" id="financial-dashboard-container">
-        <!-- Main container for buttons -->
-        <div class="button-group">
-            <button id="pendientes-btn" class="button"><img src="../images/tasks-icon.png" alt="Pendientes"> Pendientes</button>
-            <button id="estadisticas-btn" class="button"><img src="../images/stats-icon.png" alt="Estadísticas"> Estadísticas</button>
-            <button id="mandar-correos-btn" class="button" disabled><img src="../images/mail-icon.png" alt="Mandar Correos"> Generar</button>
-            <button id="process-xlsx-btn" class="button" disabled><img src="../images/xlsx-icon.png" alt="Process XLSX">Procesar 💳.xlsx</button>
-        </div>
-        <div class="button-group" style="align-items: center;">
-            <input type="text" id="todoist-input" placeholder="πpol todoist identifier" class="input" hidden>
-            <select id="todoist-select" class="input" disabled>
-              <option value="">Loading...</option> <!-- Placeholder option -->
-            </select>
-            <input type="text" id="days-input" placeholder="days to process" class="input" value="90">
-        </div>
-        <div id="drag-drop-area" class="drag-drop-area">Drag & Drop your .xlsx file here</div>
-        <div class="dashboard">
-          <canvas id="financial-dashboard" width="100%" hidden></canvas>
-          <div class="task-grid" id="task-grid"></div>
-        </div>
-    </div>
-      </div>
-    </div>
+    <!-- Financial dashboard -->
     <div class="content">
       <div class="section">
-            <h2 class="title collapsible" id="experimental-title">Show Experimental .Ø_Ø.</h2>
-            <div class="contentCollapsible" id="experimental-container" style="display: none;">
-            <div class="button-group">
-                <button class="button" id="todoist-btn" ><img src="../images/todoist-logo.png" alt="Todoist">Todoist</button>
-                <button class="button" id="python-btn" disabled><img src="../images/python-logo.png" alt="Python Scripts">Python Scripts</button>
-            </div>
+        <h2 class="title collapsible">Tauler de Control Financer</h2>
+        <div class="contentCollapsible" id="financial-dashboard-container">
+          <!-- Main container for buttons -->
+          <div class="button-group">
+            <button id="estadisticas-btn" class="button"><img src="../images/stats-icon.png" alt="Estadístiques"> Estadístiques</button>
+            <button id="pendientes-btn" class="button"><img src="../images/tasks-icon.png" alt="Pendents"> Pendents</button>
+          </div>
+          <div class="button-group-three" style="align-items: center;">
+            <input type="text" id="todoist-input" placeholder="πpol todoist identifier" class="input" hidden>
+            <select id="todoist-select" class="input" disabled>
+              <option value="">Carregant...</option>
+              <!-- Placeholder option -->
+            </select>
+            <input type="text" id="days-input" placeholder="days to process" class="input" value="90">
+            <button id="mandar-correos-btn" class="button" disabled><img src="../images/notifications-icon-true.png" alt="Generar notificacions"> Generar notificacions</button>
+          </div>
+          <div class="button-group">
+            <div id="drag-drop-area" class="drag-drop-area">Arrossegueu i deixeu anar el fitxer .xlsx aquí</div>
+            <button id="process-xlsx-btn" class="button" disabled><img src="../images/xlsx-icon.png" alt="Process XLSX">Processar 💳.xlsx</button>
+          </div>
+          <div class="dashboard">
+            <canvas id="financial-dashboard" width="100%" hidden></canvas>
+            <div class="task-grid" id="task-grid"></div>
+          </div>
+      </div>
+      </div>
+      <div class="section">
+        <h2 class="title collapsible" id="experimental-title">Mostra Experimental .Ø_Ø.</h2>
+        <div class="contentCollapsible" id="experimental-container" style="display: none;">
+          <div class="button-group">
+            <button class="button" id="todoist-btn" ><img src="../images/todoist-logo.png" alt="Todoist">Todoist</button>
+          </div>
         </div>
       </div>
     </div>
-</div> 
-  <!-- Footer with current date, author, and version -->
-  <footer class="footer"></footer> <!-- The date will be injected dynamically by JavaScript -->
-  <div id="user-icon2" style="cursor: pointer;">
-    <i class="fas fa-user-circle" style="font-size: 24px;"></i> 
-  </div>
-
-<script>
-    document.getElementById('user-icon-container').onclick = function() {
-        // Redirect to logout route
-        window.location.href = '/auth/logout';
-    };
-    // Add event listeners for collapsible sections
-    const collapsibles = document.querySelectorAll('.collapsible');
-    collapsibles.forEach(collapsible => {
-        collapsible.addEventListener('click', function() {
-            const content = this.nextElementSibling;
-            content.classList.toggle('show');
-        });
-    });    
-</script>
-<script src="main.js"></script> <!-- Main functions -->
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Markdown parser -->
-<script src="utils.js"></script> <!-- Utils functions -->
-</body>
+    <!-- Footer with current date, author, and version -->
+    <footer class="footer"></footer>
+    <!-- The date will be injected dynamically by JavaScript -->
+    <div id="user-icon2" style="cursor: pointer;">
+      <i class="fas fa-user-circle" style="font-size: 24px;"></i> 
+    </div>
+    <script>
+      document.getElementById('user-icon-container').onclick = function() {
+          // Redirect to logout route
+          window.location.href = '/auth/logout';
+      };
+      // Add event listeners for collapsible sections
+      const collapsibles = document.querySelectorAll('.collapsible');
+      collapsibles.forEach(collapsible => {
+          collapsible.addEventListener('click', function() {
+              const content = this.nextElementSibling;
+              content.classList.toggle('show');
+          });
+      });    
+    </script>
+    <script src="main.js"></script> <!-- Main functions -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Markdown parser -->
+    <script src="utils.js"></script> <!-- Utils functions -->
+  </body>
 </html>
