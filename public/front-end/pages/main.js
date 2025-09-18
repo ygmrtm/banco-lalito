@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let to = '';
             let from = '';
             let description = '';
+            let monto = task.properties.mto_to.number;
             for (const people of task.properties['πpol_to'].multi_select) 
                 to += (to.length > 0 ? ', ' : '') + people.name 
             for (const people of task.properties['πpol_from'].multi_select) 
@@ -84,20 +85,45 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const text of task.properties.description.rich_text)
                 description += (description.length > 0 ? ', ' : '') + text.plain_text;
             const card = document.createElement('div');
+            card.id = task.id;
             card.className = 'task-card ' + (task.properties.pending.checkbox ? 'pending' : 'ready');
             card.innerHTML = `
-                <h3>$${task.properties.mto_to.number}</h3>
+                <h3 id=monto${task.id}>$${monto}</h3>
                 <p align="center">${task.properties.type.select.name}</p>
                 <p><em>${description}</em></p>
-                <p>To: ${to}</p>
-                <p>From: ${from}</p>
+                <p><b>To:</b> ${to}</p>
+                <p><b>From:</b> ${from}</p>
             `;
 
             // Add click event to handle task completion
             card.addEventListener('click', async () => {
-                if (task.properties.pending.checkbox) {
+                if (monto == 0){
+                    //console.log("registering monto");
+                    const newMonto = prompt("Introduïu l'import a pagar:");
+                    if (newMonto != null && newMonto != 0) {
+                        monto = parseFloat(newMonto); // Update the outer monto variable
+                        await confirmTaskPending(task.id, 'pending', monto);
+                        const taskMonto = document.getElementById('monto'+task.id);
+                        taskMonto.innerHTML = `$${monto}`;
+                    }
+                }else if (task.properties.pending.checkbox) {
+                    //console.log("registering from pending to ready");
                     card.classList.remove('pending');            
-                    await confirmTaskPending(task.id); // Assuming task has an id property
+                    await confirmTaskPending(task.id, 'ready', monto);
+                    task.properties.pending.checkbox = false;
+                    //card.classList.add('ready')
+                }else if (!task.properties.processed.checkbox){                    
+                    //console.log("registering ready to proessed");
+                    card.classList.remove('ready');            
+                    await confirmTaskPending(task.id, 'completed', monto);
+                    task.properties.processed.checkbox = true;
+                    //card.classList.add('completed');
+                }else if (task.properties.processed.checkbox){ 
+                    //console.log("ready to reactivate");
+                    card.classList.remove('completed');
+                    await confirmTaskPending(task.id, 'pending', monto);
+                    task.properties.processed.checkbox = false;
+                    task.properties.pending.checkbox = true;
                 }
             });
             
@@ -105,24 +131,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function confirmTaskPending(taskId) {
+    async function confirmTaskPending(taskId, status, monto) {
+        //const card = document.querySelector(`.task-card[data-id="${taskId}"]`);
+        const card = document.getElementById(`${taskId}`);
         try {
-            const response = await fetch(`/api/confirm-task/${taskId}`, { method: 'POST' });
+            const response = await fetch(`/api/confirm-task/${taskId}/${status}/${monto}`, { method: 'POST' });
             if (!response.ok) {
                 throw new Error('Failed to update task status');
             }
-            // Optionally, you can refresh the task list after updating
-            fetchPendingTransactions();
+            //fetchPendingTransactions();
+            if (card) {
+                card.classList.add(status);
+            }            
         } catch (error) {
             console.error('Error updating task status:', error);
             // Change card color to red if there's an error
-            const card = document.querySelector(`.task-card[data-id="${taskId}"]`);
             if (card) {
                 card.classList.remove('completed');
                 card.classList.add('error');
             }
         }
     }
+
 
     fetchPendingTransactions();
 
@@ -155,13 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
     pendientesBtn.addEventListener('click', async () => { // add event listener to pendientes button
         pendientesBtn.disabled = true; // Disable the button during the operation
         banner.style.display = 'block';
-        banner.textContent = 'Processing pending transactions...';
+        banner.textContent = 'Processant les transaccions pendents...';
         try {
             // Call the backend API for processing pending transactions
             const response = await fetch('/api/pendientes', { method: 'POST' });
             if (response.ok) {
                 const result = await response.json();
-                banner.textContent = `Status: ${result.status}`; // Display the response message
+                banner.textContent = `Estat: ${result.status}`; // Display the response message
             } else {
                 banner.textContent = 'Error processing transactions. Please try again.';
             }
@@ -181,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     estadisticasBtn.addEventListener('click', async () => {
         estadisticasBtn.disabled = true; // Disable the button during the operation
         banner.style.display = 'block';
-        banner.textContent = 'Generating statistics...';
+        banner.textContent = 'Generant estadístiques...';
         try {
             // Call the backend API for generating statistics
             const response = await fetch('/api/estadisticas', { method: 'POST' });
@@ -214,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Check if todoist is "all" and alert the user
         if (todoist === 'all') {
-            const confirmSendToAll = confirm('No specific Todoist ID provided. \nEmails will be sent to ALL. \nDo you want to proceed?');
+            const confirmSendToAll = confirm("No s'ha proporcionat cap ID de Todoist específic. \n Els correus electrònics s'enviaran a TOTS. \n Voleu continuar?");
             if (!confirmSendToAll) {
                 return; // Cancel the operation if the user does not confirm
             }
@@ -246,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log('response | ' + response)
                 console.log('result | ' + result)
-                banner.textContent = `Status: ${result.status}`;
+                banner.textContent = `Estat: ${result.status}`;
                 const total_confirmations = result.confirmations.length  || 0;
                 banner.textContent += (total_confirmations > 0)
                     ?' | Total confirmations: ' + total_confirmations
