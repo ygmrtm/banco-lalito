@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchNotifications();
                 banner.textContent += ((total_generated_not_sent > 0
                     ?' | Total Generated: ' + total_generated_not_sent
-                    :' | Nothing generated 👁️ ' )
+                    :' | Nothing generated 👁️ ' ))
             } else {
                 banner.textContent = 'Error creating notifications. Please try again.';
             }
