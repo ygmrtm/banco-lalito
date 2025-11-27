@@ -1,5 +1,5 @@
 const { Client } = require('@notionhq/client');
-const { getFromCache, setToCache } = require('./cache');
+const { initializeRedis, getFromCache, setToCache } = require('./cache');
 const { basename, join } = require('path')
 const { openAsBlob } = require('node:fs');
 const express = require('express');
@@ -38,6 +38,20 @@ router.get('/health-check', async (req, res) => {
         res.json({ status: responseString });
     } catch (error) {
         console.error('Health check error:', error); // Log the error for debugging
+        res.status(500).json({ status: 'Health check error', error: error.message });
+    }
+});
+
+router.get('/redis/health-check', async (req, res) => {
+    try {
+        const redisClient = await initializeRedis();
+        const pong = await redisClient.ping();
+        const responseString = pong === 'PONG'
+            ? 'Redis connection [✅]'
+            : 'Redis connection [❌]';
+        res.json({ status: responseString });
+    } catch (error) {
+        console.error('Health check error:', error);
         res.status(500).json({ status: 'Health check error', error: error.message });
     }
 });
@@ -275,7 +289,7 @@ async function updateNotionMissmatch(notionId, monto_antes) {
 }
 
 router.get('/get-list-of-winners', async (req, res) => {
-    console.log("🎁i'm i n m.f.")
+    //console.log("🎁i'm i n m.f.")
     const response = await getListOfWinners();
     let winners = '';
     for (const winner of response) {
