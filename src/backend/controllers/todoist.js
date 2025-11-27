@@ -15,7 +15,7 @@ router.use(myMiddleware);
 router.get('/health-check', async (req, res) => {
     try {
         let responseString = '';
-        console.log("health-check executed");
+        //console.log("health-check executed");
         const response = await fetch('https://api.todoist.com/rest/v2/projects', {
         method: 'GET',
         headers: {
