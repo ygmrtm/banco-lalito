@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchNotifications();
                 banner.textContent += ((total_generated_not_sent > 0
                     ?' | Total Generated: ' + total_generated_not_sent
-                    :' | Nothing generated 👁️ ' )
+                    :' | Nothing generated 👁️ ' ))
             } else {
                 banner.textContent = 'Error creating notifications. Please try again.';
             }
@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
             position: fixed;
             top: 20%;
             right: 20%;
-            transform: translate(-50%, -50%);
+            transform: translate(-20%, -30%);
             background-color: #f0f0f0;
             padding: 20px;
             border-radius: 10px;
@@ -492,6 +492,28 @@ document.addEventListener('DOMContentLoaded', () => {
             padding: 5px;
             margin-top: 10px;
         `;
+        const redisIcon = document.createElement('img');
+        redisIcon.src = '../images/redis-logo.png';
+        redisIcon.alt = 'Notion';
+        redisIcon.style.cssText = `
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 0.5px solid #000;
+            padding: 5px;
+            margin-top: 10px;
+        `;
+        const tradingviewIcon = document.createElement('img');
+        tradingviewIcon.src = '../images/tradingview-logo.png';
+        tradingviewIcon.alt = 'Notion';
+        tradingviewIcon.style.cssText = `
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 0.5px solid #000;
+            padding: 5px;
+            margin-top: 10px;
+        `;
         // Perform health checks
         performHealthChecks().then(healthChecks => {
             if (!healthChecks.todoistEnabled) {
@@ -502,9 +524,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 notionIcon.src = '../images/notion-logo-gray.png';
                 notionIcon.alt = 'Notion disabled';
             }
+            if (!healthChecks.redisEnabled) {
+                redisIcon.src = '../images/redis-logo-gray.png';
+                redisIcon.alt = 'Redis disabled';
+            }
         });
         healthChecksContainer.appendChild(todoistIcon);
         healthChecksContainer.appendChild(notionIcon);
+        healthChecksContainer.appendChild(redisIcon);
+        healthChecksContainer.appendChild(tradingviewIcon);
         floatingWindow.appendChild(closeButton);
         floatingWindow.appendChild(versionContainer);
         floatingWindow.appendChild(healthChecksContainer);
@@ -521,11 +549,16 @@ async function performHealthChecks() {
         const todoistResponse = await fetch('/todoist/health-check', { method: 'GET' });
         const todoistEnabled = todoistResponse.ok;
         const todoistResult = await todoistResponse.json();
-        //document.getElementById('todoist-btn').disabled = false;
+        console.log('todoistResult: ', todoistResult);
         const notionResponse = await fetch('/notion/health-check', { method: 'GET' });
         const notionEnabled = notionResponse.ok;
         const notionResult = await notionResponse.json();
-        return { todoistEnabled, todoistResult, notionEnabled, notionResult };
+        console.log('notionResult: ', notionResult);
+        const redisResponse = await fetch('/notion/redis/health-check', { method: 'GET' });
+        const redisEnabled = redisResponse.ok;
+        const redisResult = await redisResponse.json();
+        console.log('redisResult: ', redisResult);
+        return { todoistEnabled, todoistResult, notionEnabled, notionResult, redisEnabled, redisResult };
     } catch (error) {
         throw new Error('Error checking health: '+error);
     } 
