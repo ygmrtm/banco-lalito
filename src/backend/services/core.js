@@ -16,6 +16,7 @@ const DATABASE_MVN_ID = process.env.DATABASE_MVN_ID || '';
 const DATABASE_CET_ID = process.env.DATABASE_CET_ID || '';
 const DATABASE_CC_ID = process.env.DATABASE_CC_ID || '';
 const DATABASE_NOT_ID = process.env.DATABASE_NOT_ID || '';
+const DATABASE_TVW_ID = process.env.DATABASE_TVW_ID || '';
 
 
 /**

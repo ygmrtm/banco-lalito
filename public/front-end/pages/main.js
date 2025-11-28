@@ -24,12 +24,99 @@ document.addEventListener('DOMContentLoaded', () => {
     const dragDropArea = document.getElementById('drag-drop-area');
     const processXlsxBtn = document.getElementById('process-xlsx-btn');
     const todoistBtn = document.getElementById('todoist-btn');
+    const tradingviewBtn = document.getElementById('tradingview-btn');
     const experimentalTitle = document.getElementById('experimental-title');
     const experimentalContainer = document.getElementById('experimental-container');
     const aboutBtn = document.getElementById('about-icon');
     let selectedFile = null;
 
-    async function fetchPendingTransactions() {        
+    function embedTradingViewWidget(symbols) {
+        const widgetDiv = document.getElementById('tradingview-widget');
+        if (widgetDiv) {
+            widgetDiv.innerHTML = ''; // Clear existing
+            const container = document.createElement('div');
+            container.className = 'tradingview-widget-container';
+            const widget = document.createElement('div');
+            widget.className = 'tradingview-widget-container__widget';
+            container.appendChild(widget);
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-market.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+            "colorTheme": "light",
+            "dateRange": "12M",
+            "exchange": "US",
+            "showChart": true,
+            "locale": "en",
+            "largeChartUrl": "",
+            "isTransparent": false,
+            "showSymbolLogo": true,
+            "showFloatingTooltip": false,
+            "width": "100%",
+            "height": "500",
+            "plotLineColorGrowing": "rgba(41, 98, 255, 1)",
+            "plotLineColorFalling": "rgba(41, 98, 255, 1)",
+            "gridLineColor": "rgba(240, 243, 250, 0)",
+            "scaleFontColor": "rgba(120, 123, 134, 1)",
+            "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)",
+            "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)",
+            "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
+            "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0.12)",
+            "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
+            "tabs": [
+                {
+                "title": "Stocks",
+                "symbols": symbols,
+                "originalTitle": "Stocks"
+                }
+            ]
+            });
+            container.appendChild(script);
+            widgetDiv.appendChild(container);
+        }
+        }
+
+    async function fetchSectors() {
+        try {
+            const response = await fetch('/notion/tradingview/sectors');
+            const data = await response.json();
+            const sectorSelect = document.getElementById('sector-select');
+            if (sectorSelect) {
+            sectorSelect.innerHTML = '<option value="">Seleccionar Sector</option>';
+            data.sectors.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                sectorSelect.appendChild(option);
+            });
+            }
+        } catch (error) {
+            console.error('Error fetching sectors:', error);
+        }
+    }
+
+    async function fetchSymbols(sector) {
+        try {
+            const response = await fetch(`/notion/tradingview/symbols/${sector}`);
+            const data = await response.json();
+            const symbolSelect = document.getElementById('symbol-select');
+            if (symbolSelect) {
+            symbolSelect.innerHTML = '<option value="">seleccionar símbol</option>';
+            data.symbols.forEach(sym => {
+                const option = document.createElement('option');
+                option.value = sym.symbol;
+                option.textContent = sym.name;
+                symbolSelect.appendChild(option);
+            });
+            symbolSelect.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error fetching symbols:', error);
+        }
+    }
+
+    async function fetchPendingTransactions() {
         try {
             const response = await fetch('/auth/user');
             if (response.ok && response.status === 200) {
@@ -408,7 +495,98 @@ document.addEventListener('DOMContentLoaded', () => {
                 todoistBtn.disabled = false; // Re-enable the button after processing
             }, 3000);
         }
-    });    
+    });
+
+    // Add event listener to the TradingView button
+    tradingviewBtn.addEventListener('click', () => {
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      `;
+
+      // Create floating window
+      const floatingWindow = document.createElement('div');
+      floatingWindow.style.cssText = `
+        position: fixed;
+        top: 10%;
+        left: 10%;
+        width: 80%;
+        height: 80%;
+        background-color: #f0f0f0;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        z-index: 1000;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      `;
+
+      // Close button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.classList.add('close-button');
+      closeButton.onclick = () => {
+        document.body.removeChild(overlay);
+        document.body.removeChild(floatingWindow);
+      };
+
+      // Sector select
+      const sectorSelect = document.createElement('select');
+      sectorSelect.id = 'sector-select';
+      sectorSelect.classList.add('input');
+      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+
+      // Symbol select
+      const symbolSelect = document.createElement('select');
+      symbolSelect.id = 'symbol-select';
+      symbolSelect.classList.add('input');
+      symbolSelect.disabled = true;
+      symbolSelect.innerHTML = '<option value="">Select Sector First</option>';
+
+      // Widget div
+      const widgetDiv = document.createElement('div');
+      widgetDiv.id = 'tradingview-widget';
+      widgetDiv.style.flex = '1';
+
+      // Append elements
+      floatingWindow.appendChild(closeButton);
+      floatingWindow.appendChild(sectorSelect);
+      floatingWindow.appendChild(symbolSelect);
+      floatingWindow.appendChild(widgetDiv);
+
+      document.body.appendChild(overlay);
+      document.body.appendChild(floatingWindow);
+
+      // Fetch sectors
+      fetchSectors();
+
+      // Add event listeners
+      sectorSelect.addEventListener('change', () => {
+        const sector = sectorSelect.value;
+        if (sector) {
+          fetchSymbols(sector);
+        } else {
+          symbolSelect.innerHTML = '<option value="">Select Symbol</option>';
+          symbolSelect.disabled = true;
+        }
+      });
+
+      symbolSelect.addEventListener('change', () => {
+        const symbol = symbolSelect.value;
+        const name = symbolSelect.options[symbolSelect.selectedIndex].text;
+        if (symbol) {
+          embedTradingViewWidget([{ s: symbol, d: name }]);
+        }
+      });
+    });
 
     aboutBtn.addEventListener('click', () => {
         // Create overlay
