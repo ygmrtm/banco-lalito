@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const script = document.createElement('script');
             script.type = 'text/javascript';
             script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-market.js';
+            script.crossOrigin = 'anonymous';
             script.async = true;
             script.innerHTML = JSON.stringify({
             "colorTheme": "light",
@@ -75,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(script);
             widgetDiv.appendChild(container);
         }
-        }
+    }
 
     async function fetchSectors() {
         try {
@@ -83,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             const sectorSelect = document.getElementById('sector-select');
             if (sectorSelect) {
-            sectorSelect.innerHTML = '<option value="">Seleccionar Sector</option>';
+            sectorSelect.innerHTML = '<option value="">seleccionar sector</option>';
             data.sectors.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat;
@@ -499,94 +500,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listener to the TradingView button
     tradingviewBtn.addEventListener('click', () => {
-      // Create overlay
-      const overlay = document.createElement('div');
-      overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-      `;
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        `;
 
-      // Create floating window
-      const floatingWindow = document.createElement('div');
-      floatingWindow.style.cssText = `
-        position: fixed;
-        top: 10%;
-        left: 10%;
-        width: 80%;
-        height: 80%;
-        background-color: #f0f0f0;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.3);
-        z-index: 1000;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-      `;
+        // Create floating window
+        const floatingWindow = document.createElement('div');
+        floatingWindow.style.cssText = `
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        `;
 
-      // Close button
-      const closeButton = document.createElement('button');
-      closeButton.textContent = 'Close';
-      closeButton.classList.add('close-button');
-      closeButton.onclick = () => {
-        document.body.removeChild(overlay);
-        document.body.removeChild(floatingWindow);
-      };
+        // Close button
+        const closeButton = document.createElement('button');
+        closeButton.textContent = 'Close';
+        closeButton.classList.add('close-button');
+        closeButton.onclick = () => {
+            document.body.removeChild(overlay);
+            document.body.removeChild(floatingWindow);
+        };
 
-      // Sector select
-      const sectorSelect = document.createElement('select');
-      sectorSelect.id = 'sector-select';
-      sectorSelect.classList.add('input');
-      sectorSelect.innerHTML = '<option value="">Loading sectors...</option>';
+        // Sector select
+        const sectorSelect = document.createElement('select');
+        sectorSelect.id = 'sector-select';
+        sectorSelect.classList.add('input');
+        sectorSelect.innerHTML = '<option value="">S´estan carregant sectors...</option>';
 
-      // Symbol select
-      const symbolSelect = document.createElement('select');
-      symbolSelect.id = 'symbol-select';
-      symbolSelect.classList.add('input');
-      symbolSelect.disabled = true;
-      symbolSelect.innerHTML = '<option value="">Select Sector First</option>';
+        // Symbol select
+        const symbolSelect = document.createElement('select');
+        symbolSelect.id = 'symbol-select';
+        symbolSelect.classList.add('input');
+        symbolSelect.disabled = true;
+        symbolSelect.innerHTML = '<option value="">Selecciona primer el sector</option>';
 
-      // Widget div
-      const widgetDiv = document.createElement('div');
-      widgetDiv.id = 'tradingview-widget';
-      widgetDiv.style.flex = '1';
+        // Widget div
+        const widgetDiv = document.createElement('div');
+        widgetDiv.id = 'tradingview-widget';
+        widgetDiv.style.flex = '1';
 
-      // Append elements
-      floatingWindow.appendChild(closeButton);
-      floatingWindow.appendChild(sectorSelect);
-      floatingWindow.appendChild(symbolSelect);
-      floatingWindow.appendChild(widgetDiv);
+        // Append elements
+        floatingWindow.appendChild(closeButton);
+        floatingWindow.appendChild(sectorSelect);
+        floatingWindow.appendChild(symbolSelect);
+        floatingWindow.appendChild(widgetDiv);
 
-      document.body.appendChild(overlay);
-      document.body.appendChild(floatingWindow);
+        document.body.appendChild(overlay);
+        document.body.appendChild(floatingWindow);
 
-      // Fetch sectors
-      fetchSectors();
+        // Fetch sectors
+        fetchSectors();
 
-      // Add event listeners
-      sectorSelect.addEventListener('change', () => {
-        const sector = sectorSelect.value;
-        if (sector) {
-          fetchSymbols(sector);
-        } else {
-          symbolSelect.innerHTML = '<option value="">Select Symbol</option>';
-          symbolSelect.disabled = true;
-        }
-      });
+        // Add event listeners
+        sectorSelect.addEventListener('change', () => {
+            const sector = sectorSelect.value;
+            if (sector) {
+                fetchSymbols(sector);
+            } else {
+                symbolSelect.innerHTML = '<option value="">Selecciona primer el sector</option>';
+                symbolSelect.disabled = true;
+            }
+        });
 
-      symbolSelect.addEventListener('change', () => {
-        const symbol = symbolSelect.value;
-        const name = symbolSelect.options[symbolSelect.selectedIndex].text;
-        if (symbol) {
-          embedTradingViewWidget([{ s: symbol, d: name }]);
-        }
-      });
-    });
+        symbolSelect.addEventListener('change', () => {
+            const symbol = symbolSelect.value;
+            const name = symbolSelect.options[symbolSelect.selectedIndex].text;
+            if (symbol) {
+                embedTradingViewWidget([{ s: symbol, d: name }]);
+            }
+        });
+        });
 
     aboutBtn.addEventListener('click', () => {
         // Create overlay

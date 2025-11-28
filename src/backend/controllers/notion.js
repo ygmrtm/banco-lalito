@@ -129,8 +129,8 @@ router.get('/tradingview/sectors', async (req, res) => {
             });
             sectors = Array.from(catSet).sort();
             sectors = Array.from(new Set(sectors.map(s => s.trim()).filter(s => s))).sort();
-            await setToCache(cacheKey, sectors, 3600 * 24 * 7);
-            await setToCache('bnc:tradingview:fullwatchlist', Array.from(fullWatchlist).sort(), 3600 * 24 * 7);
+            await setToCache(cacheKey, sectors, 3600 * 24 * 4);
+            await setToCache('bnc:tradingview:fullwatchlist', Array.from(fullWatchlist).sort(), 3600 * 24 * 4);
         } 
         res.json({ sectors });
     } catch (error) {
@@ -157,7 +157,7 @@ router.get('/tradingview/symbols/:sector', async (req, res) => {
                 symbol: item.properties.símbol.rich_text[0].plain_text,
                 name: item.properties.nom.title[0].text.content
             }));
-            await setToCache(cacheKey, symbols, 3600 * 24 * 7);
+            await setToCache(cacheKey, symbols, 3600 * 24 * 4);
         }
         res.json({ symbols });
     } catch (error) {
