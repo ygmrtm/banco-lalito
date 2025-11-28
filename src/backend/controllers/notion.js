@@ -155,7 +155,9 @@ router.get('/tradingview/symbols/:sector', async (req, res) => {
             });
             symbols = response.results.map(item => ({
                 symbol: item.properties.símbol.rich_text[0].plain_text,
-                name: item.properties.nom.title[0].text.content
+                name: item.properties.nom.title[0].text.content,
+                //create tradingviewsymbol from the "gràfic de símbols" property (type notion formula)
+                tradingviewsymbol: item.properties['gràfic de símbols'].formula.string
             }));
             await setToCache(cacheKey, symbols, 3600 * 24 * 4);
         }

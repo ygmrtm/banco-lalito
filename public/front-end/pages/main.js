@@ -30,52 +30,404 @@ document.addEventListener('DOMContentLoaded', () => {
     const aboutBtn = document.getElementById('about-icon');
     let selectedFile = null;
 
-    function embedTradingViewWidget(symbols) {
+    function embedTradingViewWidget(sector, symbol, name) {
         const widgetDiv = document.getElementById('tradingview-widget');
         if (widgetDiv) {
             widgetDiv.innerHTML = ''; // Clear existing
-            const container = document.createElement('div');
-            container.className = 'tradingview-widget-container';
-            const widget = document.createElement('div');
-            widget.className = 'tradingview-widget-container__widget';
-            container.appendChild(widget);
-            const script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-market.js';
-            script.crossOrigin = 'anonymous';
-            script.async = true;
-            script.innerHTML = JSON.stringify({
-            "colorTheme": "light",
-            "dateRange": "12M",
-            "exchange": "US",
-            "showChart": true,
-            "locale": "en",
-            "largeChartUrl": "",
-            "isTransparent": false,
-            "showSymbolLogo": true,
-            "showFloatingTooltip": false,
-            "width": "100%",
-            "height": "500",
-            "plotLineColorGrowing": "rgba(41, 98, 255, 1)",
-            "plotLineColorFalling": "rgba(41, 98, 255, 1)",
-            "gridLineColor": "rgba(240, 243, 250, 0)",
-            "scaleFontColor": "rgba(120, 123, 134, 1)",
-            "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.12)",
-            "belowLineFillColorFalling": "rgba(41, 98, 255, 0.12)",
-            "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
-            "belowLineFillColorFallingBottom": "rgba(41, 98, 255, 0.12)",
-            "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
-            "tabs": [
-                {
-                "title": "Stocks",
-                "symbols": symbols,
-                "originalTitle": "Stocks"
-                }
-            ]
-            });
-            container.appendChild(script);
-            widgetDiv.appendChild(container);
+
+            if (sector.toLowerCase().includes('criptomoneda')) {
+                cryptoEmbedTradingViewWidget(symbol, name);
+            } else if (sector.toLowerCase().includes('forex')) {
+                forexEmbedTradingViewWidget(symbol, name);
+            } else {
+                stocksEmbedTradingViewWidget(symbol, name);
+            }
         }
+    }
+
+    function stocksEmbedTradingViewWidget(symbol, name) {
+        const widgetDiv = document.getElementById('tradingview-widget');
+
+        // Create main container with grid layout
+        const main = document.createElement('main');
+        main.style.cssText = `
+            display: grid;
+            width: 100%;
+            padding: 0 calc(var(--gap-size, 32px) * 0.5);
+            max-width: 960px;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: var(--gap-size, 32px);
+            margin-bottom: 24px;
+        `;
+
+        // Symbol Info
+        const symbolInfo = document.createElement('section');
+        symbolInfo.id = 'symbol-info';
+        symbolInfo.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js" async crossorigin="anonymous">
+                    { "symbol": "${symbol}", "width": "100%", "locale": "en", "colorTheme": "light", "isTransparent": true }
+                </script>
+            </div>
+        `;
+
+        // Advanced Chart
+        const advancedChart = document.createElement('section');
+        advancedChart.id = 'advanced-chart';
+        advancedChart.style.height = '500px';
+        advancedChart.innerHTML = `
+            <div class="tradingview-widget-container" style="height:100%;width:100%">
+                <div style="height:calc(100% - 32px);width:100%" id="tradingview_advanced_chart"></div>
+                <script src="https://s3.tradingview.com/tv.js"></script>
+                <script>
+                    new TradingView.widget({
+                        autosize: true,
+                        symbol: "${symbol}",
+                        interval: "D",
+                        timezone: "Etc/UTC",
+                        theme: "light",
+                        style: "1",
+                        locale: "en",
+                        hide_side_toolbar: false,
+                        allow_symbol_change: true,
+                        studies: ["STD;MACD"],
+                        container_id: "tradingview_advanced_chart"
+                    });
+                </script>
+            </div>
+        `;
+
+        // Company Profile
+        const companyProfile = document.createElement('section');
+        companyProfile.id = 'company-profile';
+        companyProfile.style.height = '390px';
+        companyProfile.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js" async crossorigin="anonymous">
+                    { "width": "100%", "height": "100%", "colorTheme": "light", "isTransparent": true, "symbol": "${symbol}", "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Fundamental Data
+        const fundamentalData = document.createElement('section');
+        fundamentalData.id = 'fundamental-data';
+        fundamentalData.style.height = '775px';
+        fundamentalData.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-financials.js" async crossorigin="anonymous">
+                    { "colorTheme": "light", "isTransparent": true, "largeChartUrl": "", "displayMode": "regular", "width": "100%", "height": 775, "symbol": "${symbol}", "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Technical Analysis
+        const technicalAnalysis = document.createElement('section');
+        technicalAnalysis.id = 'technical-analysis';
+        technicalAnalysis.style.height = '425px';
+        technicalAnalysis.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async crossorigin="anonymous">
+                    { "interval": "15m", "width": "100%", "isTransparent": true, "height": "100%", "symbol": "${symbol}", "showIntervalTabs": true, "displayMode": "single", "locale": "en", "colorTheme": "light" }
+                </script>
+            </div>
+        `;
+
+        // Top Stories
+        const topStories = document.createElement('section');
+        topStories.id = 'top-stories';
+        topStories.style.height = '600px';
+        topStories.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async crossorigin="anonymous">
+                    { "feedMode": "symbol", "symbol": "${symbol}", "colorTheme": "light", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": 600, "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Append all sections to main
+        main.appendChild(symbolInfo);
+        main.appendChild(advancedChart);
+        main.appendChild(companyProfile);
+        main.appendChild(fundamentalData);
+        main.appendChild(technicalAnalysis);
+        main.appendChild(topStories);
+
+        widgetDiv.appendChild(main);
+    }
+
+    function cryptoEmbedTradingViewWidget(symbol, name) {
+        const widgetDiv = document.getElementById('tradingview-widget');
+
+        // Create main container with grid layout
+        const main = document.createElement('main');
+        main.style.cssText = `
+            display: grid;
+            width: 100%;
+            padding: 0 calc(var(--gap-size, 32px) * 0.5);
+            max-width: 960px;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: var(--gap-size, 32px);
+            margin-bottom: 24px;
+        `;
+
+        // Symbol Info
+        const symbolInfo = document.createElement('section');
+        symbolInfo.id = 'symbol-info';
+        symbolInfo.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js" async crossorigin="anonymous">
+                    { "symbol": "${symbol}", "width": "100%", "locale": "en", "colorTheme": "light", "isTransparent": true }
+                </script>
+            </div>
+        `;
+
+        // Advanced Chart
+        const advancedChart = document.createElement('section');
+        advancedChart.id = 'advanced-chart';
+        advancedChart.style.height = '500px';
+        advancedChart.innerHTML = `
+            <div class="tradingview-widget-container" style="height:100%;width:100%">
+                <div style="height:calc(100% - 32px);width:100%" id="tradingview_crypto_chart"></div>
+                <script src="https://s3.tradingview.com/tv.js"></script>
+                <script>
+                    new TradingView.widget({
+                        autosize: true,
+                        symbol: "${symbol}",
+                        interval: "D",
+                        timezone: "Etc/UTC",
+                        theme: "light",
+                        style: "1",
+                        locale: "en",
+                        hide_side_toolbar: false,
+                        allow_symbol_change: true,
+                        studies: ["STD;MACD"],
+                        container_id: "tradingview_crypto_chart"
+                    });
+                </script>
+            </div>
+        `;
+
+        // Company Profile
+        const companyProfile = document.createElement('section');
+        companyProfile.id = 'company-profile';
+        companyProfile.style.height = '250px';
+        companyProfile.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js" async crossorigin="anonymous">
+                    { "width": "100%", "height": "100%", "colorTheme": "light", "isTransparent": true, "symbol": "${symbol}", "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Technical Analysis
+        const technicalAnalysis = document.createElement('section');
+        technicalAnalysis.id = 'technical-analysis';
+        technicalAnalysis.style.height = '425px';
+        technicalAnalysis.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async crossorigin="anonymous">
+                    { "interval": "15m", "width": "100%", "isTransparent": true, "height": "100%", "symbol": "${symbol}", "showIntervalTabs": true, "displayMode": "single", "locale": "en", "colorTheme": "light" }
+                </script>
+            </div>
+        `;
+
+        // Top Stories
+        const topStories = document.createElement('section');
+        topStories.id = 'top-stories';
+        topStories.style.height = '600px';
+        topStories.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async crossorigin="anonymous">
+                    { "feedMode": "symbol", "symbol": "${symbol}", "colorTheme": "light", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": 600, "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Crypto Heatmap
+        const cryptoHeatmap = document.createElement('section');
+        cryptoHeatmap.id = 'crypto-heatmap';
+        cryptoHeatmap.style.height = '500px';
+        cryptoHeatmap.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js" async crossorigin="anonymous">
+                    { "dataSource": "Crypto", "blockSize": "market_cap_calc", "blockColor": "change", "locale": "en", "symbolUrl": "", "colorTheme": "light", "hasTopBar": false, "isDataSetEnabled": false, "isZoomEnabled": true, "hasSymbolTooltip": true, "width": "100%", "height": "100%" }
+                </script>
+            </div>
+        `;
+
+        // Crypto Market Screener
+        const cryptoMktScreener = document.createElement('section');
+        cryptoMktScreener.id = 'crypto-mkt-screener';
+        cryptoMktScreener.style.height = '500px';
+        cryptoMktScreener.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <div class="tradingview-widget-copyright">
+                    <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+                        <span class="blue-text">Track all markets on TradingView</span>
+                    </a>
+                </div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async crossorigin="anonymous">
+                    { "width": "100%", "height": "100%", "defaultColumn": "overview", "screener_type": "crypto_mkt", "displayCurrency": "USD", "colorTheme": "light", "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Append all sections to main
+        main.appendChild(symbolInfo);
+        main.appendChild(advancedChart);
+        main.appendChild(companyProfile);
+        main.appendChild(technicalAnalysis);
+        main.appendChild(topStories);
+        main.appendChild(cryptoHeatmap);
+        main.appendChild(cryptoMktScreener);
+
+        widgetDiv.appendChild(main);
+    }
+
+    function forexEmbedTradingViewWidget(symbol, name) {
+        const widgetDiv = document.getElementById('tradingview-widget');
+
+        // Create main container with grid layout
+        const main = document.createElement('main');
+        main.style.cssText = `
+            display: grid;
+            width: 100%;
+            padding: 0 calc(var(--gap-size, 32px) * 0.5);
+            max-width: 960px;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: var(--gap-size, 32px);
+            margin-bottom: 24px;
+        `;
+
+        // Symbol Info
+        const symbolInfo = document.createElement('section');
+        symbolInfo.id = 'symbol-info';
+        symbolInfo.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js" async crossorigin="anonymous">
+                    { "symbol": "${symbol}", "width": "100%", "locale": "en", "colorTheme": "light", "isTransparent": true }
+                </script>
+            </div>
+        `;
+
+        // Advanced Chart
+        const advancedChart = document.createElement('section');
+        advancedChart.id = 'advanced-chart';
+        advancedChart.style.height = '500px';
+        advancedChart.innerHTML = `
+            <div class="tradingview-widget-container" style="height:100%;width:100%">
+                <div style="height:calc(100% - 32px);width:100%" id="tradingview_forex_chart"></div>
+                <script src="https://s3.tradingview.com/tv.js"></script>
+                <script>
+                    new TradingView.widget({
+                        autosize: true,
+                        symbol: "${symbol}",
+                        interval: "D",
+                        timezone: "Etc/UTC",
+                        theme: "light",
+                        style: "1",
+                        locale: "en",
+                        hide_side_toolbar: false,
+                        allow_symbol_change: true,
+                        container_id: "tradingview_forex_chart"
+                    });
+                </script>
+            </div>
+        `;
+
+        // Company Profile
+        const companyProfile = document.createElement('section');
+        companyProfile.id = 'company-profile';
+        companyProfile.style.height = '250px';
+        companyProfile.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js" async crossorigin="anonymous">
+                    { "width": "100%", "height": "100%", "colorTheme": "light", "isTransparent": true, "symbol": "${symbol}", "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Technical Analysis
+        const technicalAnalysis = document.createElement('section');
+        technicalAnalysis.id = 'technical-analysis';
+        technicalAnalysis.style.height = '425px';
+        technicalAnalysis.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async crossorigin="anonymous">
+                    { "interval": "15m", "width": "100%", "isTransparent": true, "height": "100%", "symbol": "${symbol}", "showIntervalTabs": true, "displayMode": "single", "locale": "en", "colorTheme": "light" }
+                </script>
+            </div>
+        `;
+
+        // Top Stories
+        const topStories = document.createElement('section');
+        topStories.id = 'top-stories';
+        topStories.style.height = '600px';
+        topStories.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async crossorigin="anonymous">
+                    { "feedMode": "symbol", "symbol": "${symbol}", "colorTheme": "light", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": 600, "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Economic Calendar
+        const economicCalendar = document.createElement('section');
+        economicCalendar.id = 'economic-calendar';
+        economicCalendar.style.height = '500px';
+        economicCalendar.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async crossorigin="anonymous">
+                    { "width": "100%", "height": "100%", "colorTheme": "light", "isTransparent": false, "locale": "en", "importanceFilter": "-1,0,1", "countryFilter": "us,eu,it,nz,ch,au,fr,jp,za,tr,ca,de,mx,es,gb" }
+                </script>
+            </div>
+        `;
+
+        // Forex Cross Rates
+        const forexCrossRates = document.createElement('section');
+        forexCrossRates.id = 'forex-cross-rates';
+        forexCrossRates.style.height = '500px';
+        forexCrossRates.innerHTML = `
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <div class="tradingview-widget-copyright">
+                    <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+                        <span class="blue-text">Track all markets on TradingView</span>
+                    </a>
+                </div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async crossorigin="anonymous">
+                    { "width": "100%", "height": "100%", "currencies": ["EUR", "USD", "JPY", "GBP", "CHF", "AUD", "CAD", "NZD"], "isTransparent": false, "colorTheme": "light", "locale": "en" }
+                </script>
+            </div>
+        `;
+
+        // Append all sections to main
+        main.appendChild(symbolInfo);
+        main.appendChild(advancedChart);
+        main.appendChild(companyProfile);
+        main.appendChild(technicalAnalysis);
+        main.appendChild(topStories);
+        main.appendChild(economicCalendar);
+        main.appendChild(forexCrossRates);
+
+        widgetDiv.appendChild(main);
     }
 
     async function fetchSectors() {
@@ -106,7 +458,8 @@ document.addEventListener('DOMContentLoaded', () => {
             symbolSelect.innerHTML = '<option value="">seleccionar símbol</option>';
             data.symbols.forEach(sym => {
                 const option = document.createElement('option');
-                option.value = sym.symbol;
+                //option.value = sym.symbol;
+                option.value = sym.tradingviewsymbol;
                 option.textContent = sym.name;
                 symbolSelect.appendChild(option);
             });
@@ -539,6 +892,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.removeChild(floatingWindow);
         };
 
+        // Container for selects
+        const selectsContainer = document.createElement('div');
+        selectsContainer.style.cssText = `
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        `;
+
         // Sector select
         const sectorSelect = document.createElement('select');
         sectorSelect.id = 'sector-select';
@@ -557,10 +918,13 @@ document.addEventListener('DOMContentLoaded', () => {
         widgetDiv.id = 'tradingview-widget';
         widgetDiv.style.flex = '1';
 
+        // Append selects to container
+        selectsContainer.appendChild(sectorSelect);
+        selectsContainer.appendChild(symbolSelect);
+
         // Append elements
         floatingWindow.appendChild(closeButton);
-        floatingWindow.appendChild(sectorSelect);
-        floatingWindow.appendChild(symbolSelect);
+        floatingWindow.appendChild(selectsContainer);
         floatingWindow.appendChild(widgetDiv);
 
         document.body.appendChild(overlay);
@@ -583,8 +947,9 @@ document.addEventListener('DOMContentLoaded', () => {
         symbolSelect.addEventListener('change', () => {
             const symbol = symbolSelect.value;
             const name = symbolSelect.options[symbolSelect.selectedIndex].text;
-            if (symbol) {
-                embedTradingViewWidget([{ s: symbol, d: name }]);
+            const sector = sectorSelect.value;
+            if (symbol && sector) {
+                embedTradingViewWidget(sector, symbol, name);
             }
         });
         });

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html data-pagefind-ignore=all data-theme=light lang=en>
+  <head>
+    <meta charset=UTF-8>
+      <meta content="width=device-width,initial-scale=1" name=viewport>
+        <title>
+          Stocks Solution Demo (Light)
+        </title>
+        <style>
+          :root .stvb-brand[data-astro-cid-pkzv2hgs]{--stvb-color:#2962ff;--stvb-color-hover:#1e53e5;--stvb-color-active:#1848cc;--stvb-color-text:#fff;--stvb-color-hover-text:#fff;--stvb-color-active-text:#fff}:root .stvb-black[data-astro-cid-pkzv2hgs]{--stvb-color:#131722;--stvb-color-hover:#2a2e39;--stvb-color-active:#434651;--stvb-color-text:#fff;--stvb-color-hover-text:#fff;--stvb-color-active-text:#fff}:root[data-theme=dark] .stvb-black[data-astro-cid-pkzv2hgs]{--stvb-color:#fff;--stvb-color-hover:#f0f3fa;--stvb-color-active:#d1d4dc;--stvb-color-text:#131722;--stvb-color-hover-text:#131722;--stvb-color-active-text:#131722}:root .stvb-gray[data-astro-cid-pkzv2hgs]{--stvb-color:#f0f3fa;--stvb-color-hover:#e0e3eb;--stvb-color-active:#d1d4dc;--stvb-color-text:#131722;--stvb-color-hover-text:#131722;--stvb-color-active-text:#131722}:root .stvb-gray[data-astro-cid-pkzv2hgs].stvb-secondary{--stvb-color:#e0e3eb;--stvb-color-hover:#f0f3fa;--stvb-color-active:#e0e3eb}:root[data-theme=dark] .stvb-gray[data-astro-cid-pkzv2hgs]{--stvb-color:#2a2e39;--stvb-color-hover:#363a45;--stvb-color-active:#434651;--stvb-color-text:#fff;--stvb-color-hover-text:#fff;--stvb-color-active-text:#fff}:root[data-theme=dark] .stvb-gray[data-astro-cid-pkzv2hgs].stvb-secondary{--stvb-color:#434651;--stvb-color-hover:#2a2e39;--stvb-color-active:#363a45;--stvb-color-text:#d1d4dc}.stvb-base[data-astro-cid-pkzv2hgs]{display:inline-flex;flex-direction:row;align-items:center;font-style:normal;font-size:16px;line-height:24px}.stvb-base[data-astro-cid-pkzv2hgs]:focus-visible{outline-color:var(--tv-blue-500);outline-width:2px;outline-offset:4px}button[data-astro-cid-pkzv2hgs].stvb-base{border:none}.stvb-icon[data-astro-cid-pkzv2hgs]{--arrow-fill-color:var(--stvb-color-text)}.stvb-icon-force-color[data-astro-cid-pkzv2hgs]{color:var(--stvb-color-text)!important}.stvb-force-no-border[data-astro-cid-pkzv2hgs]{border:none!important}.stvb-small[data-astro-cid-pkzv2hgs]{height:34px;border-radius:6px;padding-inline:12px;font-weight:400;letter-spacing:-.317px}.stvb-medium[data-astro-cid-pkzv2hgs]{height:40px;border-radius:8px;padding-inline:16px;font-weight:510;letter-spacing:-.32px}.stvb-primary[data-astro-cid-pkzv2hgs]{background-color:var(--stvb-color);color:var(--stvb-color-text)}.stvb-secondary[data-astro-cid-pkzv2hgs]{background-color:transparent;color:var(--stvb-color)}.stvb-secondary[data-astro-cid-pkzv2hgs],button[data-astro-cid-pkzv2hgs].stvb-base.stvb-secondary{border-style:solid;border-width:1px;border-color:var(--stvb-color)}.stvb-primary[data-astro-cid-pkzv2hgs]:hover,.stvb-secondary[data-astro-cid-pkzv2hgs]:hover{color:var(--stvb-color-hover-text);background-color:var(--stvb-color-hover)}.stvb-primary[data-astro-cid-pkzv2hgs]:active,.stvb-secondary[data-astro-cid-pkzv2hgs]:active{color:var(--stvb-color-active-text);background-color:var(--stvb-color-active)}.stvb-base[data-astro-cid-pkzv2hgs].stvb-icon.stvb-medium{padding:6px}.stvb-base[data-astro-cid-pkzv2hgs].stvb-icon.stvb-small{padding:3px}.stvb-pointer[data-astro-cid-pkzv2hgs]{cursor:pointer}*,:after,:before{box-sizing:border-box}*{margin:0}body{line-height:1.5;-webkit-font-smoothing:antialiased}canvas,img,picture,svg,video{display:block;max-width:100%}button,input,select,textarea{font:inherit}h1,h2,h3,h4,h5,h6,p{overflow-wrap:break-word}#__next,#root{isolation:isolate}a{text-decoration:none}header[data-astro-cid-rafkve5z]{display:flex;width:100%;align-items:center;border-bottom:1px solid #e0e3eb;justify-content:space-between;padding:8px var(--gap-size);flex-direction:row;z-index:1}:root[data-theme=dark] header[data-astro-cid-rafkve5z]{border-bottom:1px solid #2a2e39}:root{--gap-size:32px;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Trebuchet MS,Roboto,Ubuntu,sans-serif;color:#000}:root[data-theme=dark]{color:#fff}*{box-sizing:border-box}body{margin:0;padding:0;display:flex;flex-direction:column;align-items:center;background:#fff}:root[data-theme=dark] body{background:#000}#powered-by-tv p{margin:0;font-size:12px;color:#0009}:root[data-theme=dark] #powered-by-tv p{color:#fff9}main{display:grid;width:100%;padding:0 calc(var(--gap-size) * .5);max-width:960px;grid-template-columns:1fr 1fr;grid-gap:var(--gap-size);margin-bottom:24px}#advanced-chart,#company-profile,#fundamental-data,#symbol-info,.span-full-grid{grid-column:span 2}#powered-by-tv,#technical-analysis,#top-stories,.span-one-column{grid-column:span 1}#advanced-chart{height:500px}#company-profile{height:390px}#fundamental-data{height:775px}#technical-analysis{height:425px}#top-stories{height:600px}#powered-by-tv{display:flex;background:#f8f9fd;border:solid 1px #e0e3eb;text-align:justify;flex-direction:column;gap:8px;font-size:14px;padding:16px;border-radius:6px}:root[data-theme=dark] #powered-by-tv svg{filter:invert()}:root[data-theme=dark] #powered-by-tv{background:#0c0e15;border:solid 1px #1e222d}#powered-by-tv a,#powered-by-tv a:visited{color:#2962ff}@media (max-width:800px){#powered-by-tv,#technical-analysis,#top-stories,.span-full-grid,main>section{grid-column:span 2}}
+        </style>
+      </head>
+      <body>
+        <header data-astro-cid-rafkve5z>
+        </header>
+        <style>
+          #advanced-chart,#company-profile,#fundamental-data,#symbol-info,.span-full-grid{grid-column:span 2}#technical-analysis,#top-stories,.span-one-column{grid-column:span 1}#advanced-chart{height:500px}#company-profile{height:390px}#fundamental-data{height:775px}#technical-analysis{height:425px}#top-stories{height:600px}@media (max-width:800px){#technical-analysis,#top-stories,.span-full-grid,main>section{grid-column:span 2}}
+        </style>
+        <main>
+          <section id=symbol-info>
+            <div class=tradingview-widget-container>
+              <div class=tradingview-widget-container__widget>
+              </div>
+              <script src=https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js async>
+                { "symbol": "NASDAQ:AAPL", "width": "100%", "locale": "en", "colorTheme": "light", "isTransparent": true }
+              </script>
+            </div>
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js" async="" crossorigin="anonymous">
+                    { "symbol": "NASDAQ:AAPL", "width": "100%", "locale": "en", "colorTheme": "light", "isTransparent": true }
+                </script>
+            </div>            
+          </section>
+          <section id=advanced-chart>
+            <div class=tradingview-widget-container style=height:100%;width:100%>
+              <div style="height:calc(100% - 32px);width:100%" id=tradingview_ae7da>
+              </div>
+              <script src=https://s3.tradingview.com/tv.js>
+              </script>
+              <script>
+                new TradingView.widget({autosize:!0,symbol:"NASDAQ:AAPL",interval:"D",timezone:"Etc/UTC",theme:"light",style:"1",locale:"en",hide_side_toolbar:!1,allow_symbol_change:!0,studies:["STD;MACD"],container_id:"tradingview_ae7da"})
+              </script>
+            </div>
+          </section>
+          <section id=company-profile>
+            <div class=tradingview-widget-container>
+              <div class=tradingview-widget-container__widget>
+              </div>
+              <script src=https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js async>
+                { "width": "100%", "height": "100%", "colorTheme": "light", "isTransparent": true, "symbol": "NASDAQ:AAPL", "locale": "en" }
+              </script>
+            </div>
+          </section>
+          <section id=fundamental-data>
+            <div class=tradingview-widget-container>
+              <div class=tradingview-widget-container__widget>
+              </div>
+              <script src=https://s3.tradingview.com/external-embedding/embed-widget-financials.js async>
+                { "colorTheme": "light", "isTransparent": true, "largeChartUrl": "", "displayMode": "regular", "width": "100%", "height": 775, "symbol": "NASDAQ:AAPL", "locale": "en" }
+              </script>
+            </div>
+          </section>
+          <section id=technical-analysis>
+            <div class=tradingview-widget-container>
+              <div class=tradingview-widget-container__widget>
+              </div>
+              <script src=https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js async>
+                { "interval": "15m", "width": "100%", "isTransparent": true, "height": "100%", "symbol": "NASDAQ:AAPL", "showIntervalTabs": true, "displayMode": "single", "locale": "en", "colorTheme": "light" }
+              </script>
+            </div>
+          </section>
+          <section id=top-stories>
+            <div class=tradingview-widget-container>
+              <div class=tradingview-widget-container__widget>
+              </div>
+              <script src=https://s3.tradingview.com/external-embedding/embed-widget-timeline.js async>
+                { "feedMode": "symbol", "symbol": "NASDAQ:AAPL", "colorTheme": "light", "isTransparent": true, "displayMode": "regular", "width": "100%", "height": 600, "locale": "en" }
+              </script>
+            </div>
+          </section>
+        </main>
+      </body>
+    </html>
