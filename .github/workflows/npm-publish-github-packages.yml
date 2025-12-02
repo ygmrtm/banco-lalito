@@ -53,4 +53,4 @@ jobs:
 
       # Publish the package
       - name: Publish package to npm
-        run: npm publish --access public --tag latest
+        run: npm publish --tag latest
