@@ -24,12 +24,18 @@ jobs:
           node-version: '16'  
           registry-url: 'https://registry.npmjs.org/'
 
+      # GIT login
+      - name: GIT | login
+        run: |
+          git config --global user.name 'ygmrtm'
+          git config --global user.email 'ygmrtm@gmail.com'
+          git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
+
       # Install dependencies and run tests
       - name: NPM | Install dependencies
         run: npm install
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }} 
-        
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}         
       - name: NPM | Build
         run: npm run build --if-present
       - name: NPM | Run tests
@@ -38,14 +44,7 @@ jobs:
         run: npm run release
       - name: NPM | Publish package to npm
         run: npm publish          
-
-      # GIT login
-      - name: GIT | login
-        run: |
-          git config --global user.name 'ygmrtm'
-          git config --global user.email 'ygmrtm@gmail.com'
-          git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
-          
+         
       # GIT commit(force and add tag) & push
       - name: GIT | Commit 
         run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
