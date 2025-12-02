@@ -41,7 +41,13 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-
+          
+      - name: GIT login
+        run: |
+          git config --global user.name 'ygmrtm'
+          git config --global user.email 'ygmrtm@gmail.com'
+          git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
+          
       # Ensure npm 11.5.1 or later is installed
       - name: Update npm
         run: npm install -g npm@latest
