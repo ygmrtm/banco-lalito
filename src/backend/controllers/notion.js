@@ -101,6 +101,72 @@ router.get('/get-people/:people_type', async (req, res) => {
     }
 });
 
+router.get('/tradingview/sectors', async (req, res) => {
+    const cacheKey = 'bnc:tradingview:sectors';
+    try {
+        let sectors = await getFromCache(cacheKey);
+        if (!sectors) {
+            notion = await initializeNotion();
+            const response = await notion.databases.query({
+                database_id: process.env.DATABASE_TVW_ID,
+                filter: {
+                    "and": [
+                    { property: 'sector', select: { "is_not_empty": true } }
+                    ]
+                },
+            });
+            const catSet = new Set();
+            const fullWatchlist = new Set();
+            response.results.forEach(item => {
+                if (item.properties.sector.select) {
+                    // Normalize sector name: trim whitespace to avoid duplicates from trailing/leading spaces
+                    const normalizedSector = item.properties.sector.select.name.trim();
+                    if (normalizedSector) {
+                        catSet.add(normalizedSector);
+                        fullWatchlist.add(item); 
+                    }
+                }
+            });
+            sectors = Array.from(catSet).sort();
+            sectors = Array.from(new Set(sectors.map(s => s.trim()).filter(s => s))).sort();
+            await setToCache(cacheKey, sectors, 3600 * 24 * 4);
+            await setToCache('bnc:tradingview:fullwatchlist', Array.from(fullWatchlist).sort(), 3600 * 24 * 4);
+        } 
+        res.json({ sectors });
+    } catch (error) {
+        console.error('Error fetching sectors:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/tradingview/symbols/:sector', async (req, res) => {
+    const sector = req.params.sector;
+    const cacheKey = `bnc:tradingview:symbols:${sector}`;
+    try {
+        let symbols = await getFromCache(cacheKey);
+        if (!symbols) {
+            notion = await initializeNotion();
+            const response = await notion.databases.query({
+                database_id: process.env.DATABASE_TVW_ID,
+                filter: {
+                    property: 'sector',
+                    select: { equals: sector }
+                }
+            });
+            symbols = response.results.map(item => ({
+                symbol: item.properties.símbol.rich_text[0].plain_text,
+                name: item.properties.nom.title[0].text.content,
+                tradingviewsymbol: item.properties['gràfic de símbols'].formula.string
+            }));
+            await setToCache(cacheKey, symbols, 3600 * 24 * 4);
+        }
+        res.json({ symbols });
+    } catch (error) {
+        console.error('Error fetching symbols:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 async function createNotionClient() {
     if (!process.env.NOTION_TOKEN) {
@@ -287,6 +353,7 @@ async function updateNotionMissmatch(notionId, monto_antes) {
     const updated = await notion.pages.update({ page_id: notionId, properties: { antes: { number: monto_antes } } });
     return updated;
 }
+
 
 router.get('/get-list-of-winners', async (req, res) => {
     //console.log("🎁i'm i n m.f.")

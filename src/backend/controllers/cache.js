@@ -50,7 +50,7 @@ async function getFromCache(key) {
 
 async function setToCache(key, value, expiration = 3600) {
     await initializeRedis();
-    await client.set(key, JSON.stringify(value), 'EX', expiration);
+    await client.set(key, JSON.stringify(value), { EX: expiration });
 }
 
 module.exports = { initializeRedis, getFromCache, setToCache };

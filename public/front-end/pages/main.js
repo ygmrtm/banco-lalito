@@ -24,12 +24,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const dragDropArea = document.getElementById('drag-drop-area');
     const processXlsxBtn = document.getElementById('process-xlsx-btn');
     const todoistBtn = document.getElementById('todoist-btn');
+    const tradingviewBtn = document.getElementById('tradingview-btn');
     const experimentalTitle = document.getElementById('experimental-title');
     const experimentalContainer = document.getElementById('experimental-container');
     const aboutBtn = document.getElementById('about-icon');
     let selectedFile = null;
 
-    async function fetchPendingTransactions() {        
+
+    async function fetchSectors() {
+        try {
+            const response = await fetch('/notion/tradingview/sectors');
+            const data = await response.json();
+            const sectorSelect = document.getElementById('sector-select');
+            if (sectorSelect) {
+            sectorSelect.innerHTML = '<option value="">seleccionar sector</option>';
+            data.sectors.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                sectorSelect.appendChild(option);
+            });
+            }
+        } catch (error) {
+            console.error('Error fetching sectors:', error);
+        }
+    }
+
+    async function fetchSymbols(sector) {
+        try {
+            const response = await fetch(`/notion/tradingview/symbols/${sector}`);
+            const data = await response.json();
+            const symbolSelect = document.getElementById('symbol-select');
+            if (symbolSelect) {
+            symbolSelect.innerHTML = '<option value="">seleccionar símbol</option>';
+            data.symbols.forEach(sym => {
+                const option = document.createElement('option');
+                //option.value = sym.symbol;
+                option.value = sym.tradingviewsymbol;
+                option.textContent = sym.name;
+                symbolSelect.appendChild(option);
+            });
+            symbolSelect.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error fetching symbols:', error);
+        }
+    }
+
+    async function fetchPendingTransactions() {
         try {
             const response = await fetch('/auth/user');
             if (response.ok && response.status === 200) {
@@ -408,7 +450,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 todoistBtn.disabled = false; // Re-enable the button after processing
             }, 3000);
         }
-    });    
+    });
+
+    // Add event listener to the TradingView button
+    tradingviewBtn.addEventListener('click', () => {
+        // Hide the button
+        tradingviewBtn.style.display = 'none';
+
+        // Create container for selects
+        const selectsContainer = document.createElement('div');
+        selectsContainer.id = 'tradingview-selects-container';
+        selectsContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        `;
+
+        // Sector select
+        const sectorSelect = document.createElement('select');
+        sectorSelect.id = 'sector-select';
+        sectorSelect.classList.add('input');
+        sectorSelect.innerHTML = '<option value="">S´estan carregant sectors...</option>';
+
+        // Symbol select
+        const symbolSelect = document.createElement('select');
+        symbolSelect.id = 'symbol-select';
+        symbolSelect.classList.add('input');
+        symbolSelect.disabled = true;
+        symbolSelect.innerHTML = '<option value="">Selecciona primer el sector</option>';
+
+        // Append selects to container
+        selectsContainer.appendChild(sectorSelect);
+        selectsContainer.appendChild(symbolSelect);
+
+        // Insert container after the button
+        tradingviewBtn.parentNode.insertBefore(selectsContainer, tradingviewBtn.nextSibling);
+
+        // Fetch sectors
+        fetchSectors();
+
+        // Add event listeners
+        sectorSelect.addEventListener('change', () => {
+            const sector = sectorSelect.value;
+            if (sector) {
+                fetchSymbols(sector);
+            } else {
+                symbolSelect.innerHTML = '<option value="">Selecciona primer el sector</option>';
+                symbolSelect.disabled = true;
+            }
+        });
+
+        symbolSelect.addEventListener('change', () => {
+            const symbol = symbolSelect.value;
+            const sector = sectorSelect.value;
+            if (symbol && sector) {
+                loadTradingViewHTML(sector, symbol);
+            }
+        });
+    });
 
     aboutBtn.addEventListener('click', () => {
         // Create overlay

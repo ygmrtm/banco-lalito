@@ -14,13 +14,13 @@ jobs:
     steps:
       # Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Set up Node.js environment
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '16'  # Use your Node.js version
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org/'
 
       # Install dependencies and run tests
