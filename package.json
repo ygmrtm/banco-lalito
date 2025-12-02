@@ -25,6 +25,10 @@
   ],
   "author": "ygmrtm",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ygmrtm/banco-lalito"
+  },
   "dependencies": {
     "@notionhq/client": "^2.2.15",
     "@sendgrid/mail": "^8.1.3",
