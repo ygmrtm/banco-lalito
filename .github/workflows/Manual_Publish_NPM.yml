@@ -56,7 +56,12 @@ jobs:
         run: npm run release          
       - run: npm test
       - run: npm publish
-
+      # GIT commit(force and add tag) & push
+      - name: Commit 
+        run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
+      - name: Push to GitHub
+        run: git push --follow-tags origin main
+        
       - name: Debug .versionrc and CHANGELOG.md
         run: | 
           echo "Contents of .versionrc:"
