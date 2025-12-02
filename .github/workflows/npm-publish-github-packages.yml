@@ -42,8 +42,11 @@ jobs:
         run: npm test --passWithNoTests
       - name: Release
         run: npm run release
+      # Authenticate with npm registry
+      - name: Authenticate to npm
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc        
       - name: NPM | Publish package to npm
-        run: npm publish          
+        run: npm publish -tag latest
          
       # GIT commit(force and add tag) & push
       - name: GIT | Commit 
