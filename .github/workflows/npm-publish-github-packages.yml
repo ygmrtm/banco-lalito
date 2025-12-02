@@ -5,6 +5,7 @@ on:
     branches:
       - main
 permissions:
+  id-token: write 
   contents: write
   
 jobs:
@@ -18,42 +19,39 @@ jobs:
 
       # Set up Node.js environment
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'  # Use your Node.js version
+          node-version: '16'  
           registry-url: 'https://registry.npmjs.org/'
 
-      # Install dependencies and run tests
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test --passWithNoTests
-
       # GIT login
-      - name: GIT login
+      - name: GIT | login
         run: |
           git config --global user.name 'ygmrtm'
           git config --global user.email 'ygmrtm@gmail.com'
           git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
 
-      # Release   
+      # Install dependencies and run tests
+      - name: NPM | Install dependencies
+        run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}         
+      - name: NPM | Build
+        run: npm run build --if-present
+      - name: NPM | Run tests
+        run: npm test --passWithNoTests
       - name: Release
         run: npm run release
-
+      - name: NPM | Publish package to npm
+        run: npm publish          
+         
       # GIT commit(force and add tag) & push
-      - name: Commit 
-        run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
+      - name: GIT | Commit 
+        run: 'git commit --allow-empty -m "chore: (release): published ${{ steps.Release.outputs.newTag }}"'
 
-      - name: Push to GitHub
+      - name: GIT | Push to GitHub
         run: git push --follow-tags origin main
 
-      # Authenticate with npm registry
-      - name: Authenticate to npm
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-
       # Publish the package
-      - name: Publish package to npm
-        run: npm publish --access public --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #- name: Publish package to npm
+      #  run: npm publish --tag latest
