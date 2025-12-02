@@ -40,7 +40,7 @@ jobs:
         run: npm run build --if-present
       - name: NPM | Run tests
         run: npm test --passWithNoTests
-      - name: NPM | Release
+      - name: Release
         run: npm run release
       - name: NPM | Publish package to npm
         run: npm publish          
