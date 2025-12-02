@@ -265,29 +265,13 @@ const templates = {
 };
 
 function loadTradingViewHTML(sector, symbol) {
-    const cacheKey = `${sector}-${symbol}`;
-    let html = sessionStorage.getItem(cacheKey);
-
-    if (!html) {
-        let templateKey;
-        if (sector.toLowerCase().includes('criptomoneda')) {
-            templateKey = 'crypto';
-        } else if (sector.toLowerCase().includes('forex')) {
-            templateKey = 'forex';
-        } else {
-            templateKey = 'stocks';
-        }
-
-        html = templates[templateKey].replace(/{{SYMBOL}}/g, symbol);
-        sessionStorage.setItem(cacheKey, html);
-    }
+    // Generate TradingView URL: https://www.tradingview.com/symbols/{symbol}/
+    // Replace : with -
+    const formattedSymbol = symbol.replace(':', '-');
+    const url = `https://www.tradingview.com/symbols/${formattedSymbol}/`;
 
     // Open in new tab
-    const newWindow = window.open('', '_blank');
-    if (newWindow) {
-        newWindow.document.write(html);
-        newWindow.document.close();
-    }
+    window.open(url, '_blank');
 }
 
 function embedTradingViewWidget(sector, symbol, name) {

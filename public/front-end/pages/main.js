@@ -454,49 +454,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listener to the TradingView button
     tradingviewBtn.addEventListener('click', () => {
-        // Create overlay
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        `;
+        // Hide the button
+        tradingviewBtn.style.display = 'none';
 
-        // Create floating window
-        const floatingWindow = document.createElement('div');
-        floatingWindow.style.cssText = `
-            position: fixed;
-            top: 10%;
-            left: 10%;
-            width: 80%;
-            height: 80%;
-            background-color: #f0f0f0;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        `;
-
-        // Close button
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'Close';
-        closeButton.classList.add('close-button');
-        closeButton.onclick = () => {
-            document.body.removeChild(overlay);
-            document.body.removeChild(floatingWindow);
-        };
-
-        // Container for selects
+        // Create container for selects
         const selectsContainer = document.createElement('div');
+        selectsContainer.id = 'tradingview-selects-container';
         selectsContainer.style.cssText = `
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-bottom: 10px;
         `;
@@ -514,22 +480,12 @@ document.addEventListener('DOMContentLoaded', () => {
         symbolSelect.disabled = true;
         symbolSelect.innerHTML = '<option value="">Selecciona primer el sector</option>';
 
-        // Widget div
-        const widgetDiv = document.createElement('div');
-        widgetDiv.id = 'tradingview-widget';
-        widgetDiv.style.flex = '1';
-
         // Append selects to container
         selectsContainer.appendChild(sectorSelect);
         selectsContainer.appendChild(symbolSelect);
 
-        // Append elements
-        floatingWindow.appendChild(closeButton);
-        floatingWindow.appendChild(selectsContainer);
-        floatingWindow.appendChild(widgetDiv);
-
-        document.body.appendChild(overlay);
-        document.body.appendChild(floatingWindow);
+        // Insert container after the button
+        tradingviewBtn.parentNode.insertBefore(selectsContainer, tradingviewBtn.nextSibling);
 
         // Fetch sectors
         fetchSectors();
@@ -547,13 +503,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         symbolSelect.addEventListener('change', () => {
             const symbol = symbolSelect.value;
-            const name = symbolSelect.options[symbolSelect.selectedIndex].text;
             const sector = sectorSelect.value;
             if (symbol && sector) {
-                embedTradingViewWidget(sector, symbol, name);
+                loadTradingViewHTML(sector, symbol);
             }
         });
-        });
+    });
 
     aboutBtn.addEventListener('click', () => {
         // Create overlay
