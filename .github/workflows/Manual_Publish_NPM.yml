@@ -54,7 +54,7 @@ jobs:
       - name: Release
         run: npm run release          
       - run: npm test
-      - run: npm publish
+      - run: npm publish --tag latest
       # GIT commit(force and add tag) & push
       - name: Commit 
         run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
