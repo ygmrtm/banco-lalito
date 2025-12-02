@@ -40,17 +40,17 @@ jobs:
         run: npm publish          
 
       # GIT login
-      - name: GIT login
+      - name: GIT | login
         run: |
           git config --global user.name 'ygmrtm'
           git config --global user.email 'ygmrtm@gmail.com'
           git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
           
       # GIT commit(force and add tag) & push
-      - name: Commit 
+      - name: GIT | Commit 
         run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
 
-      - name: Push to GitHub
+      - name: GIT | Push to GitHub
         run: git push --follow-tags origin main
 
       # Publish the package
