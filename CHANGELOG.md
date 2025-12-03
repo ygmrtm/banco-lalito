@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.3.8 (2025-12-03)
+
+
+### Chore
+
+* (release): publish ([705c5f2](https://github.com/ygmrtm/banco-lalito/commit/705c5f251413b0d75cb4364637b868cbc9b22f75))
+
 ### 2.3.7 (2025-12-03)
 
 ### 2.3.6 (2025-12-02)
