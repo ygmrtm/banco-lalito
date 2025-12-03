@@ -35,6 +35,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Inspect the config set up by setup-node (pre)
+        run: |
+          cat /home/runner/work/_temp/.npmrc
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
