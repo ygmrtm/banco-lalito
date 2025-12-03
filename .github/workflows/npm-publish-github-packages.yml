@@ -3,57 +3,36 @@ name: Publish to npm
 on:
   push:
     branches:
-      - mai
+      - main
 permissions:
   contents: write
   
 jobs:
   publish:
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Set up Node.js environment
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
-
-      # Install dependencies and run tests
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test --passWithNoTests
-
-      # GIT login
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Update npm
+        run: npm install -g npm@latest
       - name: GIT login
         run: |
           git config --global user.name 'ygmrtm'
           git config --global user.email 'ygmrtm@gmail.com'
           git remote set-url origin https://${{ secrets.PAT_GH }}@github.com/ygmrtm/banco-lalito.git
-
-      # Release   
+      - run: npm ci
+      - run: npm run build --if-present
       - name: Release
-        run: npm run release
-
+        run: npm run release          
+      - run: npm test
+      - run: npm publish --tag latest
       # GIT commit(force and add tag) & push
       - name: Commit 
         run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
-
       - name: Push to GitHub
         run: git push --follow-tags origin main
-
-      # Authenticate with npm registry
-      - name: Authenticate to npm
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-
-      # Publish the package
-      - name: Publish package to npm
-        run: npm publish --access public --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}t
