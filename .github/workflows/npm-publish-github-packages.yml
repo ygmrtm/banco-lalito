@@ -30,6 +30,14 @@ jobs:
       - name: Release
         run: npm run release          
       - run: npm test
+
+      # Run various npm commands to trigger the warning
+      - run: npm --version
+      - run: npm config ls
+      - name: Inspect the config set up by setup-node
+        run: |
+          cat /home/runner/work/_temp/.npmrc
+      
       - run: npm publish --tag latest
       # GIT commit(force and add tag) & push
       - name: Commit 
