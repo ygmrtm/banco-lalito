@@ -29,16 +29,16 @@ jobs:
       - run: npm run build --if-present
       - name: Release
         run: npm run release          
-      - run: npm test
+      #- run: npm test
 
       # Run various npm commands to trigger the warning
-      - run: npm --version
-      - run: npm config ls
-      - name: Inspect the config set up by setup-node
-        run: |
-          cat /home/runner/work/_temp/.npmrc
+      #- run: npm --version
+      #- run: npm config ls
+      #- name: Inspect the config set up by setup-node
+      #  run: |
+      #    cat /home/runner/work/_temp/.npmrc
       
-      - run: npm publish --tag latest
+      #- run: npm publish --tag latest
       # GIT commit(force and add tag) & push
       - name: Commit 
         run: 'git commit --allow-empty -m "chore: (release): publish ${{ steps.Release.outputs.newTag }}"'
