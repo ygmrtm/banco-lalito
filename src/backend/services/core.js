@@ -177,6 +177,7 @@ const mantenimiento = async (properties) => {
           let ajuste = 0;
         
           data.forEach((item) => {
+            //console.log(item);
             const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
             current = item.properties.current$.formula.number;
             ajuste = monto - current;
@@ -511,7 +512,7 @@ async function insertCetesPlazosDB(proper, description, monto_modif){
   serie = Number(serie);
   const folio = Number(proper.folio.number) ?? 1980;
   const fIni = proper.when_final.formula.date.start;
-  const days = Number(proper.days.formula.number) ?? 30;  
+  const days = Number(proper.days.formula.number) ?? 45;  
   const dateTemp = new Date(fIni);
   dateTemp.setDate(dateTemp.getDate() + days);
   const fFin = proper.when_ends.date?.start ?? dateTemp.toISOString().slice(0, 10);
@@ -551,7 +552,7 @@ async function insertCetesPlazosDB(proper, description, monto_modif){
     };
     //console.log(properTimeline);
     if (generaBloqueInversion)
-      updateNotionPage(DATABASE_CET_ID, notionid, 0, monto);
+      await updateNotionPage(DATABASE_CET_ID, notionid, 0, monto);
     await addNotionPageToDatabase(DATABASE_CET_ID, properTimeline, 1, externalIconURL, iconType);
   } catch (error) {
     console.error('Error insertCetesPlazosDB:', error);
