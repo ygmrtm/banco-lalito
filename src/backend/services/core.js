@@ -130,13 +130,13 @@ const dispersionNomina = async (monto, description) => {
       await addNotionPageToDatabase(DATABASE_BAK_ID, properties, monto); //perfiles
       data.forEach((item) => {  
           const pq = item.properties.pq.number;
-          const todoist = item.properties.todoist.rich_text[0].plain_text;
+          const notionlabel = item.properties.todoist.rich_text[0].plain_text;
           properties = {
-            Name: { title: [{ text: { content: todoist } }] },
+            Name: { title: [{ text: { content: notionlabel } }] },
             description: {rich_text: [{text: {content: (description.concat('|',monto.toString()))}}]},
             mto_to: { number: monto * pq },
             type: { select: { name: '(mov)imiento' } },
-            πpol_to: { multi_select: [{ name: todoist }] }
+            πpol_to: { multi_select: [{ name: notionlabel }] }
           }
           addNotionPageToDatabase(DATABASE_BAK_ID, properties, monto);
       });  
@@ -155,10 +155,10 @@ const dispersionNomina = async (monto, description) => {
  */
 const mantenimiento = async (properties) => {
       const monto = properties.mto_to.number;
-      const todoist = properties.πpol_to.multi_select[0].name;
+      const notionlabel = properties.πpol_to.multi_select[0].name;
       const currentWeekNumber = getWeekNumber(new Date());
       const description = properties.description.rich_text[0].plain_text + ' W' + currentWeekNumber;
-      console.log(`== Executing mantenimiento for amount: ${monto} | ${todoist} | ${description}`);
+      console.log(`== Executing mantenimiento for amount: ${monto} | ${notionlabel} | ${description}`);
     
       try {
           const response = await notion.databases.query({
@@ -166,11 +166,11 @@ const mantenimiento = async (properties) => {
               filter: {
                   "and": [
                       { property: 'status', status: { equals: "active" } },
-                      { property: 'todoist', rich_text: { equals: todoist } }
+                      { property: 'todoist', rich_text: { equals: notionlabel } }
                   ]
               },
           });
-          console.log("mantenimiento 🔢 = ", response.results.length, todoist);
+          console.log("mantenimiento 🔢 = ", response.results.length, notionlabel);
         
           const data = response.results;
           let current = 0;
@@ -183,17 +183,17 @@ const mantenimiento = async (properties) => {
             ajuste = monto - current;
           
             const propertiesIns = {
-                Name: { title: [{ text: { content: todoist } }] },
+                Name: { title: [{ text: { content: notionlabel } }] },
                 description: { rich_text: [{ text: { content: description } }] },
                 mto_to: { number: ajuste },
                 type: { select: { name: '(mov)imiento' } },
-                πpol_to: { multi_select: [{ name: todoist }] }
+                πpol_to: { multi_select: [{ name: notionlabel }] }
             };
             
             addNotionPageToDatabase(DATABASE_BAK_ID, propertiesIns, ajuste);
             
-            if (todoist.toLowerCase().includes("familia")) {
-                interesFamiliar(ajuste, todoist, description);
+            if (notionlabel.toLowerCase().includes("familia")) {
+                interesFamiliar(ajuste, notionlabel, description);
             }
           
             if (generaBloqueInversion) {
@@ -230,14 +230,14 @@ const interesFamiliar = async (ajuste, fromAcc, description) => {
           data.forEach(async (item) => {  
             const pageid = item.id;
             const pq = item.properties.current$.formula.number / totalFamiliar;
-            const todoist = item.properties.todoist.rich_text[0].plain_text;
+            const notionlabel = item.properties.todoist.rich_text[0].plain_text;
             const pieceOfPay = ajuste * pq;
             const properties = {
-                Name: { title: [{ text: { content: todoist }}]},
+                Name: { title: [{ text: { content: notionlabel }}]},
                 description: { rich_text: [{ text: { content: `${description} | origen:${fromAcc}` }}]},
                 mto_to: { number: pieceOfPay },
                 type: { select: { name: '(mov)imiento' }},
-                πpol_to: { multi_select: [{ name: todoist }]}
+                πpol_to: { multi_select: [{ name: notionlabel }]}
             };
             addNotionPageToDatabase(DATABASE_BAK_ID, properties, pieceOfPay);
             await notion.pages.update({ page_id: pageid, properties: { pq: { number: pq } } });
@@ -274,23 +274,23 @@ const movimiento = async (monto, when, description, peopleTo, peopleFrom, curren
       let totalForFrom = 0;
       let stringOfTo = '';
       for (const ente of peopleTo) {  ////////loop πpol_to
-        const todoist = ente.name;
+        const notionlabel = ente.name;
         const response = await notion.databases.query({
           database_id: DATABASE_PPL_ID,
           filter: {
             "and": [
               { property: 'status', status: { equals: "active" } },
-              { property: 'todoist', rich_text: { equals: todoist } },
+              { property: 'todoist', rich_text: { equals: notionlabel } },
             ]
           },
         });
-        console.log("movimiento 🔢 = ", response.results.length, todoist);
+        console.log("movimiento 🔢 = ", response.results.length, notionlabel);
         const data = response.results;
         
         data.forEach(async (item) => { 
           // Get current value from map if it exists, otherwise get it from item
-          const current = currentValuesMap.has(todoist) 
-            ? currentValuesMap.get(todoist)
+          const current = currentValuesMap.has(notionlabel) 
+            ? currentValuesMap.get(notionlabel)
             : item.properties.current$.formula.number;
             
           const notionid = item.id;
@@ -310,11 +310,11 @@ const movimiento = async (monto, when, description, peopleTo, peopleFrom, curren
             updateNotionPage(DATABASE_CET_ID, notionid, monto,0);  
 
           // Store the current value in the map
-          currentValuesMap.set(todoist, current + monto);
+          currentValuesMap.set(notionlabel, current + monto);
           
         });
         totalForFrom += monto;
-        stringOfTo = stringOfTo + '🚻 '+ todoist;
+        stringOfTo = stringOfTo + '🚻 '+ notionlabel;
       }
       
       //in case has a πpol_from generates the opposite monto.
@@ -331,23 +331,23 @@ const movimiento = async (monto, when, description, peopleTo, peopleFrom, curren
  * 
  * @param {string} transactionKey - The unique key for the transaction.
  * @param {number} monto - The amount involved in the transaction.
- * @param {string} fromTodoist - The source Todoist for the transaction.
- * @param {string} toTodoist - The destination Todoist for the transaction.
+ * @param {string} fromNotionlabel - The source Notionlabel for the transaction.
+ * @param {string} toNotionlabel - The destination Notionlabel for the transaction.
  * @param {string} description - Additional description for the transaction.
  */
-  async function fromProcess(transactionKey, monto, fromTodoist, toTodoist, description){
-      console.log(`== Executing FROM movement : ${monto} | ${fromTodoist} | ${toTodoist} | ${description}`);
+  async function fromProcess(transactionKey, monto, fromNotionlabel, toNotionlabel, description){
+      console.log(`== Executing FROM movement : ${monto} | ${fromNotionlabel} | ${toNotionlabel} | ${description}`);
       try {
           const response = await notion.databases.query({
               database_id: DATABASE_PPL_ID,
               filter: {
                   "and": [
                       { property: 'status', status: { equals: "active" } },
-                      { property: 'todoist', rich_text: { equals: fromTodoist } },
+                      { property: 'todoist', rich_text: { equals: fromNotionlabel } },
                   ]
               },
           });
-          console.log("fromProcess 🔢 = ", response.results.length, fromTodoist);
+          console.log("fromProcess 🔢 = ", response.results.length, fromNotionlabel);
           const data = response.results;
           data.forEach((item) => { 
               const current = item.properties.current$.formula.number;
@@ -355,7 +355,7 @@ const movimiento = async (monto, when, description, peopleTo, peopleFrom, curren
               const generaBloqueInversion = item.properties.generaBloqueInversion.checkbox;
               const properties = {
                   name: { title: [{ text: { content: transactionKey } }] },
-                  concept: { rich_text: [{ text: { content:  `${description} | distributed to: ${toTodoist}`} }] },
+                  concept: { rich_text: [{ text: { content:  `${description} | distributed to: ${toNotionlabel}`} }] },
                   antes: { number: current },
                   monto: { number: monto },
                   πpol: { relation: [{ id: notionid }] },
@@ -415,14 +415,14 @@ const sobrinas = async (monto, description, peopleFrom) => {
           let i = 1;
           data.forEach((item) => {  
               const pq = (i === 1 ? 0.40 : (i === 2 ? 0.30 : (i === 3 ? 0.20 : (i === 4 ? 0.10 : 0))));
-              const todoist = item.properties.todoist.rich_text[0].plain_text;
+              const notionlabel = item.properties.todoist.rich_text[0].plain_text;
               const indiceUrgencia = item.properties.indiceLanaDias.formula.number;
               properties = {
-                  Name: { title: [{ text: { content: todoist }}] },
+                  Name: { title: [{ text: { content: notionlabel }}] },
                   description: { rich_text: [{ text: { content: (`${description} ind:${indiceUrgencia.toFixed(2)}`) }}] },
                   mto_to: { number: monto * pq },
                   type: { select: { name: '(mov)imiento' }},
-                  πpol_to: { multi_select: [{ name: todoist }]}
+                  πpol_to: { multi_select: [{ name: notionlabel }]}
               };
               i++;
               addNotionPageToDatabase(DATABASE_BAK_ID, properties, monto * pq);
@@ -568,8 +568,8 @@ const movementsCache = {}; // Initialize an in-memory cache
  * @param to - The end date of the time range.
  * @returns An array of objects representing the retrieved movements, including concept, amount, final balance, color, and movement date.
  */
-async function getMovements(notionid,todoist, from, to) {
-  const cacheKey = `${todoist}-${from.toISOString().slice(0, 10)}-${to.toISOString().slice(0, 10)}`;
+async function getMovements(notionid,notionlabel, from, to) {
+  const cacheKey = `${notionlabel}-${from.toISOString().slice(0, 10)}-${to.toISOString().slice(0, 10)}`;
   /*if (movementsCache[cacheKey]) {
     console.log(`== getMovements for ${cacheKey} (cached) ==`);
     return movementsCache[cacheKey];
@@ -649,15 +649,15 @@ const formatter = new Intl.NumberFormat('es-MX', {
  * Generates a random item from the given data based on the 'current$' property value being greater than 0.
  * 
  * @param data - The array of objects containing the data to select from.
- * @returns A randomly selected item from the 'todoist' property along with a ghost emoji and skull emoji.
+ * @returns A randomly selected item from the 'notionlabel' property along with a ghost emoji and skull emoji.
  */ 
 function generaRifa(data){
   const array = [];
   data.forEach((item) => {
     const value = Number(item.properties.current$.formula.number);
-    const todoist = item.properties.todoist.rich_text[0].plain_text;
+    const notionlabel = item.properties.todoist.rich_text[0].plain_text;
     if(value > 0 ){
-        array.push(todoist);
+        array.push(notionlabel);
         //array.push("👻.💀");
     } 
   });
@@ -667,13 +667,13 @@ function generaRifa(data){
 }
 
 /**
- * Executes the process to send the last movements within a specified number of days for a given todoist.
+ * Executes the process to send the last movements within a specified number of days for a given notionlabel.
  * Retrieves data from the database, calculates financial metrics, and sends a financial report via email.
- * @param todoistToLook The todoist to look for in the database
+ * @param notionlabelToLook The notionlabel to look for in the database
  * @param days The number of days to consider for the last movements
  * @returns A Promise that resolves once the process is completed
  */
-const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
+const executeLastMvmnts = async (days, notionlabelToLook, sendMail=true) => {
   let msgback = { 'status': '✅ Success', 'message': '', 'confirmations':[] };
   try {
     const response = await notion.databases.query({  //get all
@@ -686,17 +686,17 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
       }
     });
     let data = response.results;
-    const todoistGanador = await generaRifa(data);
+    const notionlabelGanador = await generaRifa(data);
     const totalFamiliar = data.reduce((acc, item) => acc + (Number(item.properties.current$.formula.number) > 0 ? Number(item.properties.current$.formula.number) : 0), 0);
-    //console.log("executeLastMvmnts 🔢 = ", response.results.length, todoistToLook, ' 🎉ganador:', todoistGanador,`totalFamiliar=${totalFamiliar}`);
-    if (todoistToLook !== 'all') {
-      const response2 = await notion.databases.query({  //get specific todoist name
+    //console.log("executeLastMvmnts 🔢 = ", response.results.length, notionlabelToLook, ' 🎉ganador:', notionlabelGanador,`totalFamiliar=${totalFamiliar}`);
+    if (notionlabelToLook !== 'all') {
+      const response2 = await notion.databases.query({  //get specific notionlabel name
         database_id: DATABASE_PPL_ID,
         filter: {
           "and": [
             { property: 'status', status: { equals: "active" } },
             { property: 'type', select: { equals: "A" } },
-            { property: 'todoist', rich_text: { equals: todoistToLook } }
+            { property: 'todoist', rich_text: { equals: notionlabelToLook } }
           ]
         }
       });
@@ -704,7 +704,7 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
     }
     await Promise.all(data.map(async (item) => {
       const notionid = item.id;
-      const todoist = item.properties.todoist.rich_text[0].plain_text;
+      const notionlabel = item.properties.todoist.rich_text[0].plain_text;
       const mail = item.properties.mail.email;
       const current = item.properties.current$.formula.number;
       const daysOfMvmnts = item.properties.daysOfMvmnts.formula.number;
@@ -712,13 +712,13 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
       const aka = item.properties.Name.title[0].text.content;
       const porcPart = (current * 100) / totalFamiliar;
       const iconUrl = item.icon.external.url;
-      const cacheKey = `bnc:people:confirmations:${todoist}:${daysOfMvmnts}`;
+      const cacheKey = `bnc:people:confirmations:${notionlabel}:${daysOfMvmnts}`;
       const from = new Date();
       from.setDate(from.getDate() - days);
       const from30 = new Date();
       from30.setDate(from30.getDate() - 30);
       if(await doNotHasOpenNotifications(notionid)){
-        const mvmnts = await  getMovements(notionid, todoist, from, new Date());
+        const mvmnts = await  getMovements(notionid, notionlabel, from, new Date());
         let sumMovUltimos30Dias = 0;
         let promedioBalance = 0, total = 0;
         let sumIngresos = 0, sumEgresos = 0, sumIntereses = 0;
@@ -745,10 +745,10 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
         });
         const invInicial = (current - sumIntereses );
         const porcIntereses = ((sumIntereses * 12) / invInicial) * 100;
-        const [ultimoPago, ultimoPagoDias] =  await getUltimoPago(todoist, notionid);
+        const [ultimoPago, ultimoPagoDias] =  await getUltimoPago(notionlabel, notionid);
         const [emailContent, promotionCode] =  await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
           , sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos
-          , sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, todoistGanador, todoist);
+          , sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, notionlabelGanador, notionlabel);
         //console.log("emailContent---", emailContent);
         let notification_status = {}
         const props = { current: current ,
@@ -761,18 +761,18 @@ const executeLastMvmnts = async (days, todoistToLook, sendMail=true) => {
           promotionCode: promotionCode,
         }
         /*if(sendMail){
-          console.log(`📨 Sending Last Movements in ${days} days for ${todoist} ==`);
-          notification_status = await sendFinancialReport(mail, todoist, emailContent, current < 0, method = 'sendgrid_a');
+          console.log(`📨 Sending Last Movements in ${days} days for ${notionlabel} ==`);
+          notification_status = await sendFinancialReport(mail, notionlabel, emailContent, current < 0, method = 'sendgrid_a');
         } */
         const today = new Date().toISOString().split('T')[0];
-        const subject = `${todoist === todoistGanador?'🥳 ':''}${aka}, transcurre el día ${daysOfMvmnts} 📆 y así su ${current < 0 ? 'deuda' : 'ahorro'} al ${today} 📈 `
-        const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos.substring(0, 1999), sendMail, todoist === todoistGanador);
+        const subject = `${notionlabel === notionlabelGanador?'🥳 ':''}${aka}, transcurre el día ${daysOfMvmnts} 📆 y así su ${current < 0 ? 'deuda' : 'ahorro'} al ${today} 📈 `
+        const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos.substring(0, 1999), sendMail, notionlabel === notionlabelGanador);
         notification_status.notion = notification_res
         await setToCache(cacheKey, notification_status, notificationTimeOut);
         msgback.confirmations.push(notification_status);
-        msgback.message += `${todoist === todoistGanador?'🥳 ':''}${aka} 🚻`
+        msgback.message += `${notionlabel === notionlabelGanador?'🥳 ':''}${aka} 🚻`
       }else{
-        msgback.message += 'nothing generated due '+todoist+' 🔔 is already there 🚻';
+        msgback.message += 'nothing generated due '+notionlabel+' 🔔 is already there 🚻';
         msgback.status = '⚠️ Warning'          
       }
     }));
@@ -801,19 +801,19 @@ async function doNotHasOpenNotifications(notionid) {
 }
 
 /**
- * Retrieves the last payment amount and the number of days since the last payment for a specific todoist.
+ * Retrieves the last payment amount and the number of days since the last payment for a specific notionlabel.
  * 
- * @param todoistToLook The todoist to search for the last payment.
- * @param notionid The notion ID associated with the todoist.
+ * @param notionlabelToLook The notionlabel to search for the last payment.
+ * @param notionid The notion ID associated with the notionlabel.
  * @returns A tuple containing the last payment amount and the number of days since the last payment.
  */
-async function getUltimoPago(todoistToLook, notionid) {
-  //console.log(`== Getting the Last Movements for ${todoistToLook} | ${notionid} ==`);
+async function getUltimoPago(notionlabelToLook, notionid) {
+  //console.log(`== Getting the Last Movements for ${notionlabelToLook} | ${notionid} ==`);
   let ultimoPago = 0, ultimoPagoDias = 0;  
   try {
     const from365 = new Date();
     from365.setDate(from365.getDate() - 365);  
-    const movements =  await getMovements(notionid, todoistToLook, from365, new Date());
+    const movements =  await getMovements(notionid, notionlabelToLook, from365, new Date());
     let gotIt = false;
     for (const movement of movements) {
       if (!gotIt && movement.monto > 0) {
@@ -918,17 +918,17 @@ const executeCCProcess = async (cleanedData) => {
 };
   
 
-async function linkTheFinalAmount(todoist) {
-    console.log(`== Running movement link to the final amount == ${todoist}`);
+async function linkTheFinalAmount(notionlabel) {
+    console.log(`== Running movement link to the final amount == ${notionlabel}`);
     let antes = 0;  
     try {
       const from8 = new Date();
       from8.setDate(from8.getDate() - 8);  
-      const movements =  await getMovements(null, todoist, from8, new Date());
+      const movements =  await getMovements(null, notionlabel, from8, new Date());
       for (const movement of movements) {
-        const { todoist:todoistMovement, notionid, monto:montoMovement } = movement;
+        const { notionlabel:notionlabelMovement, notionid, monto:montoMovement } = movement;
         let {antes:antesMovement} = movement;
-        if (todoist === todoistMovement) {
+        if (notionlabel === notionlabelMovement) {
           if(antes !== 0 && antesMovement != antes){
             await updateNotionMissmatch(notionid,antes);
             antesMovement = antes;
