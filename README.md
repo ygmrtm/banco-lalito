@@ -56,7 +56,7 @@
 - **POST /api/pendientes**: Processes pending transactions.
 - **POST /api/send-emails**: Sends emails based on user input.
 - **GET /notion/health-check**: Checks the connection to Notion.
-- **GET /todoist/health-check**: Checks the connection to Todoist.
+
 
 ### Example Request
 ```javascript

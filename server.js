@@ -5,7 +5,6 @@ const session = require('express-session'); // Import express-session
 const crypto = require('crypto'); // Import crypto for generating a secret key
 const authRoutes = require('./src/routes/auth'); // Import your auth routes
 const financialRoutes = require('./src/backend/services/financial'); // Import financial routes
-const todoistRoutes = require('./src/backend/controllers/todoist'); // Import todoist routes
 const { router: notionRoutes } = require('./src/backend/controllers/notion'); // Import notion routes
 const app = express();
 
@@ -34,7 +33,6 @@ app.use(passport.session());
 app.use(authRoutes); // Add this line to use your auth routes
 // Use the financial routes// Use the financial routes
 app.use('/api', financialRoutes); // Prefix the financial routes with /api
-app.use('/todoist', todoistRoutes); // Prefix the todoist routes with /todoist
 app.use('/notion', notionRoutes); // Prefix the notion routes with /notion
 // Route for serving the main HTML page
 app.get('/', (req, res) => {

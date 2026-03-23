@@ -33,14 +33,14 @@ const formatter = new Intl.NumberFormat('es-MX', {
  * @param ultimoPago The last payment amount.
  * @param ultimoPagoDias The days since the last payment.
  * @param fromDays The starting date in days.
- * @param todoistGanador The winning Todoist.
- * @param todoist The Todoist.
+ * @param notionlabelGanador The winning notionlabel.
+ * @param notionlabel The notionlabel.
  * @returns A Promise that resolves to the generated template mail content.
  */
 async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
     ,sumMovUltimos30Dias, promedioBalance, iconUrl, from30, days
     ,sumEgresos, sumIngresos, sumIntereses, trs, porcIntereses
-    ,ultimoPago, ultimoPagoDias, fromDays, todoistGanador, todoist) {
+    ,ultimoPago, ultimoPagoDias, fromDays, notionlabelGanador, notionlabel) {
     try {
         // Fetch user information to get appVersion
         const packageJson = require('../../../package.json');
@@ -56,7 +56,7 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
         const it = aka.includes('Don') ? 'he' : 'she';
         const { getRandomKey, getWeekNumber } = require('./core');
         const yy_week = new Date().getFullYear() + '' + getWeekNumber(new Date())
-        const promotionCode = getRandomKey(todoist, yy_week);
+        const promotionCode = getRandomKey(notionlabel, yy_week);
 
         // Replace template placeholders with actual values
         template = template
@@ -90,7 +90,7 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
             .replace("{{from30}}", from30.toISOString().slice(0, 10))
             .replace("{{fromDays}}", fromDays.toISOString().slice(0, 10))
             // Information for the coupon
-            .replace("{{coupon}}", await templateCoupon(todoist, todoistGanador, promotionCode, due_date));
+            .replace("{{coupon}}", await templateCoupon(notionlabel, notionlabelGanador, promotionCode, due_date));
 
         return [template, promotionCode];
     } catch (error) {
@@ -103,22 +103,22 @@ async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPar
 /**
  * Asynchronously generates a coupon template based on the provided parameters.
  * Reads a template file, replaces placeholders with actual data, and creates properties for a Notion page.
- * If the 'todoist' matches 'todoistGanador', logs a message, updates the template, and adds properties to the Notion database.
- * @param todoist The todoist string.
- * @param todoistGanador The winning todoist string.
+ * If the 'notionlabel' matches 'notionlabelGanador', logs a message, updates the template, and adds properties to the Notion database.
+ * @param notionlabel The notionlabel string.
+ * @param notionlabelGanador The winning notionlabel string.
  * @param promotionCode The promotion code string.
  * @param due_date The due date for the coupon.
  * @returns A Promise that resolves to the generated coupon template.
  */
-async function templateCoupon(todoist, todoistGanador, promotionCode, due_date) {
+async function templateCoupon(notionlabel, notionlabelGanador, promotionCode, due_date) {
   if (!promotionCode || !(due_date instanceof Date)) {
       throw new Error('Invalid promotion code or due date');
   }
   const __dirname = path.resolve(); // This will give you the current directory
   const templateFile = `${__dirname}/docs/templates/coupon.html`;
   
-  if (todoist !== todoistGanador) {
-      return ''; // Return empty string if todoist does not match todoistGanador
+  if (notionlabel !== notionlabelGanador) {
+      return ''; // Return empty string if notionlabel does not match notionlabelGanador
   }
 
   console.log("🏷️ -- generando cupon ganador --", promotionCode);
@@ -127,7 +127,7 @@ async function templateCoupon(todoist, todoistGanador, promotionCode, due_date) 
   template = template
       .replace("{{promotionCode}}", promotionCode)
       .replace("{{dueDate}}", due_date.toISOString().slice(0, 10))
-      .replace("{{nombreCuenta}}", todoist);
+      .replace("{{nombreCuenta}}", notionlabel);
 
   let properties = {
       Name: { title: [{ text: { content: promotionCode.toString() } }] },
@@ -135,7 +135,7 @@ async function templateCoupon(todoist, todoistGanador, promotionCode, due_date) 
       mto_to: { number: Number(process.env.PRICE_AMT) },
       pending: { checkbox: true },
       type: { select: { name: '(mov)imiento' } },
-      πpol_to: { multi_select: [{ name: todoistGanador }] },
+      πpol_to: { multi_select: [{ name: notionlabelGanador }] },
       πpol_from: { multi_select: [{ name: 'ahorro' }] },
       when_user: { date: { start: due_date.toISOString().slice(0, 10) } }
   };
@@ -183,7 +183,6 @@ async function saveNotificationMail(notionid, subject, props, html_content, send
       response2 = await getListOfWinners();
       let winners = '';
       for (const winner of response2) {
-          //console.log("🎁", winner.properties.todoist.rollup.array[0].rich_text[0].plain_text);
           if(winner.properties.todoist.rollup.array[0].rich_text[0].plain_text != 'inversion.banamex.familiar'){
             winners += '💡'+ winner.properties.mvmnt_date.formula.date.start + ' | ' + winner.properties.todoist.rollup.array[0].rich_text[0].plain_text + '\n';
           }

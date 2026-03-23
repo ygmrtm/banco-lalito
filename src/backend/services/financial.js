@@ -89,7 +89,7 @@ router.post('/pendientes', async (req, res) => {
       });
   
       const data = response.results;
-      // Create a map to store current values by todoist
+      // Create a map to store current values by notionlabel
       const currentValuesMap = new Map();     
 
       // Process items sequentially with delay
@@ -152,24 +152,24 @@ router.post('/estadisticas', async (req, res) => {
       let familiarString = '', personalString = '';
       data.forEach((item) => {
         const current = item.properties.current$.formula.number;
-        const todoist = item.properties.todoist.rich_text[0].plain_text;
+        const notionlabel = item.properties.todoist.rich_text[0].plain_text;
         const aka = item.properties.Name.title[0].text.content;
         const it = aka.includes('Don') ? 'he' : (aka.includes('Doña') ? 'she' : 'it');
         const type = item.properties.type.select.name;
 
         if (type === 'A') {
             sumFamilia += current;
-            familiarString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(todoist);
+            familiarString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(notionlabel);
         } else if (type === 'Q') {
             sumPersonal += current;
-            personalString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(todoist);
+            personalString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(notionlabel);
         } else if (type === 'totales') {
-            if (todoist.toLowerCase().includes("familia")) {
+            if (notionlabel.toLowerCase().includes("familia")) {
                 totFamiliar += current;
-                familiarString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(todoist);
+                familiarString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(notionlabel);
             } else {
                 totPersonal += current;
-                personalString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(todoist);
+                personalString += (it === 'he' ? '🗿' : (it === 'she' ? '💋' : '🫁')).concat(notionlabel);
             }
         }
     });
@@ -187,8 +187,8 @@ router.post('/send-emails', async (req, res) => {
     try {
       const headers_ = await req.headers;
       const days = headers_.days;
-      const todoist = headers_.todoist;
-      const response = await executeLastMvmnts(days, todoist, sendMail=false);
+      const notionlabel = headers_.notionlabel;
+      const response = await executeLastMvmnts(days, notionlabel, sendMail=false);
       res.json({ status: response.status , confirmations: response.confirmations , message: response.message });
     } catch (error) {
         console.error('Error sending emails:', error);
@@ -209,9 +209,6 @@ router.get('/get-notifications/:is_read', async (req, res) => {
               sorts: [{ property: 'send_date', direction: 'descending' }]
               });  
     const data = response.results;
-    /*data.forEach((item) => {
-      console.log(item.properties.todoist.rollup.array[0].rich_text[0].plain_text);
-    });*/
     res.json({ notifications: data });
   } catch (error) {
     console.error("Error get-notifications:", error);    

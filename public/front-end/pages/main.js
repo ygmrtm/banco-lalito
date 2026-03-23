@@ -19,11 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const estadisticasBtn = document.getElementById('estadisticas-btn');
     const generateNotificacionsBtn = document.getElementById('mandar-correos-btn');
     const daysInput = document.getElementById('days-input');
-    //const todoistInput = document.getElementById('todoist-input');
-    const todoistSelect = document.getElementById('todoist-select');
+    const notionlabelSelect = document.getElementById('notionlabel-select');
     const dragDropArea = document.getElementById('drag-drop-area');
     const processXlsxBtn = document.getElementById('process-xlsx-btn');
-    const todoistBtn = document.getElementById('todoist-btn');
     const tradingviewBtn = document.getElementById('tradingview-btn');
     const experimentalTitle = document.getElementById('experimental-title');
     const experimentalContainer = document.getElementById('experimental-container');
@@ -223,14 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };    
 
 
-    // Fetch and populate the todoist-select dropdown
     async function fetchPeople(peopleType) {
         try {
             const response = await fetch(`/notion/get-people/${(peopleType)}`, { method: 'GET' });
             let not_inactive = 0;
             if (response.ok) {
                 const result = await response.json();
-                const select = document.getElementById('todoist-select');
+                const select = document.getElementById('notionlabel-select');
                 select.innerHTML = ''; // Clear existing options
     
                 result.people.forEach(person => {
@@ -306,23 +303,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // add event listener to mandar correos button
     generateNotificacionsBtn.addEventListener('click', async () => {
         const days = parseInt(daysInput.value, 10);
-        const todoist = todoistSelect.value ? todoistSelect.value : 'all';
+        const notionlabel = notionlabelSelect.value ? notionlabelSelect.value : 'all';
         // Validate the input
         if (isNaN(days) || days <= 0) {
             banner.style.display = 'block';
             banner.textContent = 'Please enter a valid number of days.';
             return;
         }
-        // Check if todoist is "all" and alert the user
-        if (todoist === 'all') {
-            const confirmSendToAll = confirm("No s'ha proporcionat cap ID de Todoist específic. \n Els correus electrònics s'enviaran a TOTS. \n Voleu continuar?");
+        // Check if notionlabel is "all" and alert the user
+        if (notionlabel === 'all') {
+            const confirmSendToAll = confirm("No s'ha proporcionat cap ID de NotionLabel específic. \n Els correus electrònics s'enviaran a TOTS. \n Voleu continuar?");
             if (!confirmSendToAll) {
                 return; // Cancel the operation if the user does not confirm
             }
         }        
 
         generateNotificacionsBtn.disabled = true; // Disable the button during the operation
-        todoistSelect.disabled = true;
+        notionlabelSelect.disabled = true;
         banner.style.display = 'block';
         banner.textContent = 'generant notificacions...';
 
@@ -332,10 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'todoist': todoist,
+                    'notionlabel': notionlabel,
                     'days': days,
                 },
-                body: JSON.stringify({ days: days, todoist: todoist })
+                body: JSON.stringify({ days: days, notionlabel: notionlabel })
             });
 
             if (response.ok) {
@@ -356,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             setTimeout(() => {
                 banner.style.display = 'none';
-                todoistSelect.disabled = false;
             }, 6000);
         }
     });
@@ -422,33 +418,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred while processing the file.');
-        }
-    });
-
-
-    
-    // Add event listener to the Todoist button
-    todoistBtn.addEventListener('click', async () => {
-        todoistBtn.disabled = true; // Disable the button during the operation
-        banner.style.display = 'block';
-        banner.textContent = 'Checking Pending Tasks...';
-    
-        try {
-            const response = await fetch('/todoist/get-pending', { method: 'GET' });
-            if (response.ok) {
-                const result = await response.json();
-                displayPendingTasks(result.tasks); // New function to display tasks
-            } else {
-                banner.textContent = 'Error checking Pending Tasks. Please try again.';
-            }
-        } catch (error) {
-            banner.textContent = 'An error occurred while checking Pending Tasks.';
-            console.error('Error:', error);
-        } finally {
-            setTimeout(() => {
-                banner.style.display = 'none';
-                todoistBtn.disabled = false; // Re-enable the button after processing
-            }, 3000);
         }
     });
 
@@ -570,17 +539,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         
         const healthChecksContainer = document.createElement('div');
-        const todoistIcon = document.createElement('img');
-        todoistIcon.src = '../images/todoist-logo.png';
-        todoistIcon.alt = 'Todoist';
-        todoistIcon.style.cssText = `
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 0.5px solid #000;
-            padding: 5px;
-            margin-top: 10px;
-        `;
         const notionIcon = document.createElement('img');
         notionIcon.src = '../images/notion-logo.png';
         notionIcon.alt = 'Notion';
@@ -616,10 +574,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         // Perform health checks
         performHealthChecks().then(healthChecks => {
-            if (!healthChecks.todoistEnabled) {
-                todoistIcon.alt = 'Todoist disabled';
-                todoistIcon.src = '../images/todoist-logo-gray.png';
-            }
             if (!healthChecks.notionEnabled) {
                 notionIcon.src = '../images/notion-logo-gray.png';
                 notionIcon.alt = 'Notion disabled';
@@ -629,7 +583,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 redisIcon.alt = 'Redis disabled';
             }
         });
-        healthChecksContainer.appendChild(todoistIcon);
         healthChecksContainer.appendChild(notionIcon);
         healthChecksContainer.appendChild(redisIcon);
         healthChecksContainer.appendChild(tradingviewIcon);
@@ -643,13 +596,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-// Function to perform health checks for Todoist and Notion
+// Function to perform health checks for Redis and Notion
 async function performHealthChecks() {
     try {
-        const todoistResponse = await fetch('/todoist/health-check', { method: 'GET' });
-        const todoistEnabled = todoistResponse.ok;
-        const todoistResult = await todoistResponse.json();
-        console.log('todoistResult: ', todoistResult);
         const notionResponse = await fetch('/notion/health-check', { method: 'GET' });
         const notionEnabled = notionResponse.ok;
         const notionResult = await notionResponse.json();
@@ -658,7 +607,7 @@ async function performHealthChecks() {
         const redisEnabled = redisResponse.ok;
         const redisResult = await redisResponse.json();
         console.log('redisResult: ', redisResult);
-        return { todoistEnabled, todoistResult, notionEnabled, notionResult, redisEnabled, redisResult };
+        return {  notionEnabled, notionResult, redisEnabled, redisResult };
     } catch (error) {
         throw new Error('Error checking health: '+error);
     } 
