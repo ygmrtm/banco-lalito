@@ -175,7 +175,7 @@ router.post('/estadisticas', async (req, res) => {
     });
     sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString);    
     const mvmnts_notifications = await executeLastMvmnts( 31, 'all', sendMail=false);    
-    console.log(mvmnts_notifications);
+    // console.log(mvmnts_notifications);
     } catch (error) {
       console.error('Error generateBalance:', error);
     }
