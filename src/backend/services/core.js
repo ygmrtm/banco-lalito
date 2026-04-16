@@ -711,7 +711,7 @@ const executeLastMvmnts = async (days, notionlabelToLook, sendMail=true) => {
       const total_movements = item.properties.total_movements.rollup.number;
       const aka = item.properties.Name.title[0].text.content;
       const porcPart = (current * 100) / totalFamiliar;
-      const iconUrl = item.icon.external.url;
+      const iconUrl = item.icon.custom_emoji.url;
       const cacheKey = `bnc:people:confirmations:${notionlabel}:${daysOfMvmnts}`;
       const from = new Date();
       from.setDate(from.getDate() - days);
