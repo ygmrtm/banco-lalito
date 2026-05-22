@@ -13,7 +13,7 @@ const router = express.Router();
 const DATABASE_NOT_ID = process.env.DATABASE_NOT_ID || '';
 
 
-if (!process.env.NOTION_TOKEN || !process.env.DATABASE_PPL_ID || !process.env.DATABASE_BAK_ID || !process.env.SENDGRID_API_KEY) {
+if (!process.env.NOTION_TOKEN || !process.env.DATABASE_PPL_ID || !process.env.DATABASE_BAK_ID ) {
     throw new Error('Missing required environment variables for authentication.');
 }
 
@@ -174,7 +174,7 @@ router.post('/estadisticas', async (req, res) => {
         }
     });
     sendToNotionMoonLog(sumFamilia, totFamiliar, sumPersonal, totPersonal, familiarString, personalString);    
-    const mvmnts_notifications = await executeLastMvmnts( 31, 'all', sendMail=false);    
+    const mvmnts_notifications = await executeLastMvmnts( 31, 'all');    
     // console.log(mvmnts_notifications);
     } catch (error) {
       console.error('Error generateBalance:', error);
@@ -188,7 +188,7 @@ router.post('/send-emails', async (req, res) => {
       const headers_ = await req.headers;
       const days = headers_.days;
       const notionlabel = headers_.notionlabel;
-      const response = await executeLastMvmnts(days, notionlabel, sendMail=false);
+      const response = await executeLastMvmnts(days, notionlabel);
       res.json({ status: response.status , confirmations: response.confirmations , message: response.message });
     } catch (error) {
         console.error('Error sending emails:', error);

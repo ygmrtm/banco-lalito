@@ -1,5 +1,5 @@
 const { addNotionPageToDatabase, updateNotionPage, updateNotionMissmatch } = require("../controllers/notion.js");
-const { templateMail, sendFinancialReport, saveNotificationMail } = require("./mail.js");
+const { saveNotificationMail } = require("./mail.js");
 const { getFromCache, setToCache } = require('../controllers/cache');
 const { Client } = require('@notionhq/client');
 
@@ -99,7 +99,6 @@ function getWeekNumber(date) {
   tempDate.setUTCDate(tempDate.getUTCDate() + 4 - (tempDate.getUTCDay() || 7));
   const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
   const weekNo = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-
   return weekNo;
 }
 
@@ -673,7 +672,7 @@ function generaRifa(data){
  * @param days The number of days to consider for the last movements
  * @returns A Promise that resolves once the process is completed
  */
-const executeLastMvmnts = async (days, notionlabelToLook, sendMail=true) => {
+const executeLastMvmnts = async (days, notionlabelToLook) => {
   let msgback = { 'status': '✅ Success', 'message': '', 'confirmations':[] };
   try {
     const response = await notion.databases.query({  //get all
@@ -746,10 +745,9 @@ const executeLastMvmnts = async (days, notionlabelToLook, sendMail=true) => {
         const invInicial = (current - sumIntereses );
         const porcIntereses = ((sumIntereses * 12) / invInicial) * 100;
         const [ultimoPago, ultimoPagoDias] =  await getUltimoPago(notionlabel, notionid);
-        const [emailContent, promotionCode] =  await templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
-          , sumMovUltimos30Dias, promedioBalance / total, iconUrl, from30, days, sumEgresos, sumIngresos
-          , sumIntereses, trs, porcIntereses, ultimoPago, ultimoPagoDias, from, notionlabelGanador, notionlabel);
-        //console.log("emailContent---", emailContent);
+
+        const yy_week = new Date().getFullYear() + '' + getWeekNumber(new Date())
+        const promotionCode = getRandomKey(notionlabel, yy_week);
         let notification_status = {}
         const props = { current: current ,
           sumEgresos: sumEgresos,
@@ -760,13 +758,9 @@ const executeLastMvmnts = async (days, notionlabelToLook, sendMail=true) => {
           porcPart: porcPart,
           promotionCode: promotionCode,
         }
-        /*if(sendMail){
-          console.log(`📨 Sending Last Movements in ${days} days for ${notionlabel} ==`);
-          notification_status = await sendFinancialReport(mail, notionlabel, emailContent, current < 0, method = 'sendgrid_a');
-        } */
         const today = new Date().toISOString().split('T')[0];
         const subject = `${notionlabel === notionlabelGanador?'🥳 ':''}${aka}, transcurre el día ${daysOfMvmnts} 📆 y así su ${current < 0 ? 'deuda' : 'ahorro'} al ${today} 📈 `
-        const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos.substring(0, 1999), sendMail, notionlabel === notionlabelGanador);
+        const notification_res = await saveNotificationMail(notionid, subject,  props, lista_movimientos.substring(0, 1999), notionlabel === notionlabelGanador);
         notification_status.notion = notification_res
         await setToCache(cacheKey, notification_status, notificationTimeOut);
         msgback.confirmations.push(notification_status);

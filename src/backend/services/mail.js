@@ -3,8 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const { addNotionPageToDatabase, getListOfWinners  } = require('../controllers/notion');
 dotenv.config();
-const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(process.env.SENDGRID_API_KEY); // Set your SendGrid API key
 
 const formatter = new Intl.NumberFormat('es-MX', {
     style: 'currency',
@@ -37,122 +35,7 @@ const formatter = new Intl.NumberFormat('es-MX', {
  * @param notionlabel The notionlabel.
  * @returns A Promise that resolves to the generated template mail content.
  */
-async function templateMail(aka, current, total_movements, daysOfMvmnts, porcPart
-    ,sumMovUltimos30Dias, promedioBalance, iconUrl, from30, days
-    ,sumEgresos, sumIngresos, sumIntereses, trs, porcIntereses
-    ,ultimoPago, ultimoPagoDias, fromDays, notionlabelGanador, notionlabel) {
-    try {
-        // Fetch user information to get appVersion
-        const packageJson = require('../../../package.json');
-        const appVersion = packageJson.version;
-        const due_date = new Date();
-        due_date.setDate(due_date.getDate() + 7);
-        const __dirname = path.resolve(); // This will give you the current directory
-        const templateFile = current < 0
-            ? `${__dirname}/docs/templates/prestamos_template.html`
-            : `${__dirname}/docs/templates/balance_ahorro_template.html`;
-        // Use Node.js fs module to read the template file
-        let template = await fs.promises.readFile(templateFile, 'utf-8');
-        const it = aka.includes('Don') ? 'he' : 'she';
-        const { getRandomKey, getWeekNumber } = require('./core');
-        const yy_week = new Date().getFullYear() + '' + getWeekNumber(new Date())
-        const promotionCode = getRandomKey(notionlabel, yy_week);
-
-        // Replace template placeholders with actual values
-        template = template
-            .replace("{{headerImage}}", getRandomImage())
-            .replace("{{quote}}", getRandomQuote())
-            .replace("{{aka}}", aka)
-            .replace("{{currentYear}}", (new Date()).getFullYear().toString())
-            .replace("{{total_movements}}", total_movements.toString())
-            .replace("{{daysOfMvmnts}}", daysOfMvmnts.toString())
-            .replace("{{from}}", from30.toISOString().slice(0, 10))
-            .replace(/{{to}}/g, (new Date()).toISOString().slice(0, 10))
-            .replace("{{current}}", formatter.format(current))
-            .replace("{{sumMovUltimos30Dias}}", formatter.format(sumMovUltimos30Dias))
-            .replace("{{sumEgresos}}", formatter.format(sumEgresos))
-            .replace("{{sumIntereses}}", formatter.format(sumIntereses))
-            .replace("{{sumIngresos}}", formatter.format(sumIngresos))
-            .replace("{{porcentajeAnual}}", new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(porcIntereses) + '%')
-            .replace("{{days}}", days.toString())
-            .replace("{{promedioBalance}}", formatter.format(promedioBalance ? promedioBalance : 0))
-            .replace("{{transacciones}}", trs)
-            //.replace("{{iconUrl}}", iconUrl)
-            .replace("{{porcPart}}", porcPart.toFixed(2))
-            .replace("{{appVersion}}", appVersion)
-            // Information for the template of debts.
-            .replace("{{teveo}}", getRandomTeVeo())
-            .replace("{{mote}}", getRandomMote(it))
-            .replace("{{ultimoPago}}", formatter.format(ultimoPago))
-            .replace("{{ultimoPagoDias}}", ultimoPagoDias.toString())
-            .replace("{{garantia}}", getRandomGarantia())
-            .replace("{{venganza}}", getRandomVenganza())
-            .replace("{{from30}}", from30.toISOString().slice(0, 10))
-            .replace("{{fromDays}}", fromDays.toISOString().slice(0, 10))
-            // Information for the coupon
-            .replace("{{coupon}}", await templateCoupon(notionlabel, notionlabelGanador, promotionCode, due_date));
-
-        return [template, promotionCode];
-    } catch (error) {
-        console.error("Error templateMail:", error);
-        return '';
-    }
-}
-
-
-/**
- * Asynchronously generates a coupon template based on the provided parameters.
- * Reads a template file, replaces placeholders with actual data, and creates properties for a Notion page.
- * If the 'notionlabel' matches 'notionlabelGanador', logs a message, updates the template, and adds properties to the Notion database.
- * @param notionlabel The notionlabel string.
- * @param notionlabelGanador The winning notionlabel string.
- * @param promotionCode The promotion code string.
- * @param due_date The due date for the coupon.
- * @returns A Promise that resolves to the generated coupon template.
- */
-async function templateCoupon(notionlabel, notionlabelGanador, promotionCode, due_date) {
-  if (!promotionCode || !(due_date instanceof Date)) {
-      throw new Error('Invalid promotion code or due date');
-  }
-  const __dirname = path.resolve(); // This will give you the current directory
-  const templateFile = `${__dirname}/docs/templates/coupon.html`;
-  
-  if (notionlabel !== notionlabelGanador) {
-      return ''; // Return empty string if notionlabel does not match notionlabelGanador
-  }
-
-  console.log("🏷️ -- generando cupon ganador --", promotionCode);
-
-  let template = await fs.promises.readFile(templateFile, 'utf-8');
-  template = template
-      .replace("{{promotionCode}}", promotionCode)
-      .replace("{{dueDate}}", due_date.toISOString().slice(0, 10))
-      .replace("{{nombreCuenta}}", notionlabel);
-
-  let properties = {
-      Name: { title: [{ text: { content: promotionCode.toString() } }] },
-      description: { rich_text: [{ text: { content: '🎁 Cupón ganador:'.concat(promotionCode) } }] },
-      mto_to: { number: Number(process.env.PRICE_AMT) },
-      pending: { checkbox: true },
-      type: { select: { name: '(mov)imiento' } },
-      πpol_to: { multi_select: [{ name: notionlabelGanador }] },
-      πpol_from: { multi_select: [{ name: 'ahorro' }] },
-      when_user: { date: { start: due_date.toISOString().slice(0, 10) } }
-  };
-
-  if (process.env.DATABASE_BAK_ID) {
-    await addNotionPageToDatabase(process.env.DATABASE_BAK_ID, properties, 1);
-    properties.πpol_to.multi_select[0].name = 'inversion.banamex.familiar';
-    properties.πpol_from.multi_select[0].name = 'perfiles';
-    await addNotionPageToDatabase(process.env.DATABASE_BAK_ID, properties, 1);
-  } else {
-    console.warn('DATABASE_BAK_ID is not defined in the environment variables');
-  }
-
-  return template;
-}
-
-async function saveNotificationMail(notionid, subject, props, html_content, sendMail, isWinner) {
+async function saveNotificationMail(notionid, subject, props, html_content,  isWinner) {
   let response = null;
   const packageJson = require('../../../package.json');
   const appVersion = packageJson.version;
@@ -218,69 +101,6 @@ function validateEmail(email) {
    * @param isLoanReport A boolean indicating if the report is for a loan.
    */
 
-async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLoanReport, mail_method) {
-    if (!validateEmail(userEmail)) {
-        throw new Error('Invalid email address');
-    }
-    const { getDaysBetweenDates } = require('./core');
-    const currentDate = new Date().toISOString().slice(0, 10); 
-    const subject = isLoanReport
-      ? `Reporte de movimientos de su préstamo al ${currentDate}`
-      : `Reporte Financiero al ${currentDate} referente a su cuenta ${nombreDeCuenta}`;
-    const sendgridAPI = 'https://api.sendgrid.com/v3/mail/send';
-    const subject_str = (getDaysBetweenDates(new Date(), new Date(process.env.DATE_LAST_UPDATE)) <= 100 ? '🆕 ' : 'ℹ️ ').concat(subject)
-    console.log('📤 Sending mail', nombreDeCuenta, userEmail);
-    let msgback = { 'status': 'success', 'message': 'Email sent successfully 📫',
-            'name' : nombreDeCuenta+'|'+userEmail+' by'+mail_method,
-            'content' : emailContent
-    };
-    try {
-        if(mail_method === 'sendgrid_a'){
-          const emailData = {
-              personalizations: [{ to: [{ email: userEmail }],
-                  cc: [{ email: process.env.OWNER_EMAIL }],
-                  subject: subject_str,},],
-              from: { email: process.env.ADMIN_EMAIL, name: 'Banco Lalito' },
-              content: [{type: 'text/html',value: emailContent}],
-          };
-          const response = await fetch(sendgridAPI, {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${process.env.SENDGRID_API_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(emailData),
-            });
-          if (!response.ok) {
-            throw new Error(`Failed to send email: ${response.statusText}`);
-          }
-        }else if(mail_method === 'sendgrid_b'){
-          const msg = {
-            to: userEmail,
-            cc: process.env.OWNER_EMAIL,
-            from: process.env.ADMIN_EMAIL,
-            subject: subject_str,
-            html: emailContent,
-          }
-          await sgMail
-            .send(msg)
-            .then(data => {
-              console.log('Email sent by SendGrid | ' + data)
-            })
-            .catch((error) => {
-              console.error('Error Sending Mails | ' +  error)
-              msgback.message = error.message;
-              msgback.status = 'error'
-            });
-        }
-    } catch (error) {
-      console.error('Error executeLastMvmnts:', error);
-      msgback.message = error.message;
-      msgback.status = 'error'
-    }
-    //console.log(msgback)
-    return msgback;
-}
   
 /**
  * Returns a random quote from a predefined list of quotes.
@@ -386,4 +206,4 @@ async function sendFinancialReport(userEmail, nombreDeCuenta, emailContent, isLo
     return images[Math.floor(Math.random() * images.length)];
   }
   
-module.exports = { templateMail, sendFinancialReport, saveNotificationMail };
+module.exports = { saveNotificationMail };
