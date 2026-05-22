@@ -1,0 +1,39 @@
+
+services:
+  dashboard:
+    # Build locally: docker build -t banco-lalito:v2 .
+    # Deploy: docker save / scp / docker load, then compose up (no Dockerfile on server)
+    image: banco-lalito:v2
+    container_name: banco-lalito-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: always
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - NOTION_TOKEN=${NOTION_TOKEN}
+      - DATABASE_BAK_ID=${DATABASE_BAK_ID}
+      - DATABASE_PPL_ID=${DATABASE_PPL_ID}
+      - DATABASE_MVN_ID=${DATABASE_MVN_ID}
+      - DATABASE_CET_ID=${DATABASE_CET_ID}
+      - DATABASE_CC_ID=${DATABASE_CC_ID}
+      - DATABASE_NOT_ID=${DATABASE_NOT_ID}
+      - DATABASE_TVW_ID=${DATABASE_TVW_ID}
+      - BLOCK_STAT_LOG=${BLOCK_STAT_LOG}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - OWNER_EMAIL=${OWNER_EMAIL}
+      - TEMPLATE_NEG_ID=${TEMPLATE_NEG_ID}
+      - TEMPLATE_WIN_ID=${TEMPLATE_WIN_ID}
+      - TEMPLATE_POS_ID=${TEMPLATE_POS_ID}
+      - PRICE_AMT=${PRICE_AMT}
+
+  redis:
+    image: redis:alpine
+    container_name: banco-lalito-redis
+    restart: always

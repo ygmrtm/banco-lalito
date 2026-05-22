@@ -71,37 +71,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchPendingTransactions() {
         try {
-            const response = await fetch('/auth/user');
-            if (response.ok && response.status === 200) {
-                const userInfo = await response.json();
-                // Update the user name and icon in the UI
-                document.getElementById('user-name').innerHTML = `<span>${userInfo.userName}</span>`;
-                document.getElementById('user-icon').src = userInfo.userIcon;
-                document.querySelector('footer').textContent = `${getCurrentDate()} | ygmrtm | v${userInfo.version}`;
-                // get pending transactions
-                const pendingTransactions = await fetch('/api/get-pendientes', { method: 'GET' });
-                if (pendingTransactions.ok) {
-                    const result = await pendingTransactions.json();
-                    const total = result.total;
-                    const readytoprocess = result.readytoprocess ? result.readytoprocess : 0;
-                    pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendents"> ${result.status}`;
-                    pendientesBtn.disabled=true;
-                    if (total > 0) {
-                        document.getElementById('financial-dashboard-container').classList.add('show');
-                        displayPendingMovements(result.tasks);
-                        if(readytoprocess > 0) {
-                            pendientesBtn.disabled=false;
-                        }
+            // get pending transactions
+            const pendingTransactions = await fetch('/api/get-pendientes', { method: 'GET' });
+            if (pendingTransactions.ok) {
+                const result = await pendingTransactions.json();
+                const total = result.total;
+                const readytoprocess = result.readytoprocess ? result.readytoprocess : 0;
+                pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendents"> ${result.status}`;
+                pendientesBtn.disabled=true;
+                if (total > 0) {
+                    document.getElementById('financial-dashboard-container').classList.add('show');
+                    displayPendingMovements(result.tasks);
+                    if(readytoprocess > 0) {
+                        pendientesBtn.disabled=false;
                     }
-                } else {
-                    console.error('Error fetching pending transactions.' );
                 }
             } else {
-                console.error('User not authenticated', response.status);
-                document.getElementById('user-name').innerHTML = `<span>User not authenticated</span>`;
-                document.getElementById('user-icon').src = '../images/user-icon.png';
-                pendientesBtn.innerHTML = `<img src="../images/tasks-icon.png" alt="Pendents"> Pendents | 0`;
-                window.location.href = '/';
+                console.error('Error fetching pending transactions.' );
             }
         } catch (error) {
             console.error('Error fetching user info:', error);
@@ -178,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 throw new Error('Failed to update task status');
             }
-            //fetchPendingTransactions();
             if (card) {
                 card.classList.add(status);
             }            
@@ -194,26 +179,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchNotifications() {        
         try {
-            const response = await fetch('/auth/user');
-            if (response.ok && response.status === 200) {
-                const notifications = await fetch('/api/get-notifications/false', { method: 'GET' });
-                generateNotificacionsBtn.disabled=true;
-                if (notifications.ok) {
-                    const result_not = await notifications.json();
-                    people_in_select = await fetchPeople('A');
-                    //console.log("💀 \n",result_not);
-                    const tothom = people_in_select.tothom;
-                    const pendingToGenerate = tothom - result_not.notifications.length;
-                    generateNotificacionsBtn.disabled=pendingToGenerate <= 0;
-                    generateNotificacionsBtn.innerHTML = `<img src="../images/notifications-icon-`+generateNotificacionsBtn.disabled+`.png" alt="Notificacions"> Generar ${pendingToGenerate} notificacions`;
-                } else {
-                    console.error('Error fetching pending notifications.' );
-                }
+            const notifications = await fetch('/api/get-notifications/false', { method: 'GET' });
+            generateNotificacionsBtn.disabled=true;
+            if (notifications.ok) {
+                const result_not = await notifications.json();
+                people_in_select = await fetchPeople('A');
+                //console.log("💀 \n",result_not);
+                const tothom = people_in_select.tothom;
+                const pendingToGenerate = tothom - result_not.notifications.length;
+                generateNotificacionsBtn.disabled=pendingToGenerate <= 0;
+                generateNotificacionsBtn.innerHTML = `<img src="../images/notifications-icon-`+generateNotificacionsBtn.disabled+`.png" alt="Notificacions"> Generar ${pendingToGenerate} notificacions`;
             } else {
-                console.error('User not authenticated', response.status);
-                document.getElementById('user-name').innerHTML = `<span>User not authenticated</span>`;
-                document.getElementById('user-icon').src = '../images/user-icon.png';
-                window.location.href = '/';
+                console.error('Error fetching pending notifications.' );
             }
         } catch (error) {
             console.error('Error fetching notifications info:', error);
@@ -525,19 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
         versionContainer.style.cssText = `
             margin-top: 10px;
         `;
-        fetch('/auth/user')
-            .then(response => response.json())
-            .then(userInfo => {
-                versionText.textContent = `v${userInfo.version}`;
-            })
-            .catch(error => {
-                console.error('Error fetching user info:', error);
-                versionText.textContent = 'Version unavailable';
-            })
-            .finally(() => {
-                versionContainer.appendChild(versionText);
-            });
-        
         const healthChecksContainer = document.createElement('div');
         const notionIcon = document.createElement('img');
         notionIcon.src = '../images/notion-logo.png';
