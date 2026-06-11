@@ -52,6 +52,20 @@
    TODOIST_API_TOKEN=...
    ```
 
+## Deployment
+The project uses a `Makefile` for automated deployment to the remote Lenovo server.
+
+### Prerequisites
+1. **SSH Keys**: Ensure your public key is added to the server:
+   ```bash
+   ssh-copy-id yg@192.168.100.33
+   ```
+2. **Docker**: Docker and Docker Compose must be installed on the remote server.
+
+### Commands
+- `make build`: Build the Docker image locally.
+- `make deploy`: Build, transfer, and deploy the container to the server.
+
 ## Usage
 1. Start the server:
    ```bash
