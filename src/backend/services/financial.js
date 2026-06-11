@@ -1,5 +1,6 @@
 const express = require('express');
 const { sendToNotionMoonLog } = require('../controllers/notion');
+const packageJson = require('../../../package.json');
 const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts, parseSpanishDate, executeCCProcess } = require('./core');
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -16,6 +17,11 @@ const DATABASE_NOT_ID = process.env.DATABASE_NOT_ID || '';
 if (!process.env.NOTION_TOKEN || !process.env.DATABASE_PPL_ID || !process.env.DATABASE_BAK_ID ) {
     throw new Error('Missing required environment variables for authentication.');
 }
+
+// API endpoint for getting the application version
+router.get('/version', (req, res) => {
+  res.json({ version: packageJson.version });
+});
 
 // API endpoint for getting pending transactions
 router.get('/get-pendientes', async (req, res) => {

@@ -28,7 +28,11 @@
     <!-- Top banner for status messages -->
     <div class="banner" id="response_banner">Els missatges d'estat apareixeran aquí</div>
     <div class="user-info">
-      <div><img src="../images/bank-logo.png" alt="Bank Logo" id="about-icon" style="border-radius: 50%; margin: 0px 10px;max-width: 20px;max-height: 20px;"></div>
+      <div class="flip-container" id="about-icon-container" style="cursor: pointer;">
+        <div class="flipper">
+          <img src="../images/bank-logo.png" alt="Bank Logo" id="about-icon" style="border-radius: 50%; margin: 0px 10px;max-width: 20px;max-height: 20px;">
+        </div>
+      </div>
       <div id="user-name"><span></span></div>
       <div class="flip-container" id="user-icon-container" style="cursor: pointer;">
         <div class="flipper">

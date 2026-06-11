@@ -8,9 +8,19 @@ function getCurrentDate() {
 }
 
 // Inject the current date into the footer
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const footer = document.querySelector('footer');
-    footer.textContent = `${getCurrentDate()} | ygmrtm | Version 2.0.0`;
+    let version = '2.0.0'; // Fallback version
+    try {
+        const response = await fetch('/api/version');
+        if (response.ok) {
+            const data = await response.json();
+            version = data.version;
+        }
+    } catch (error) {
+        console.error('Error fetching application version:', error);
+    }
+    footer.textContent = `${getCurrentDate()} | ygmrtm | Version ${version}`;
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -52,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`/notion/tradingview/symbols/${sector}`);
             const data = await response.json();
+
+            // Sort symbols alphabetically by name (description)
+            data.symbols.sort((a, b) => a.name.localeCompare(b.name));
+
             const symbolSelect = document.getElementById('symbol-select');
             if (symbolSelect) {
             symbolSelect.innerHTML = '<option value="">seleccionar símbol</option>';
