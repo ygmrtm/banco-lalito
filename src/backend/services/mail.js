@@ -48,7 +48,7 @@ async function saveNotificationMail(notionid, subject, props, html_content,  isW
   let properties = {
       subject: { title: [{ text: { content: subject } }] },
       props: { rich_text: [{ text: { content: JSON.stringify(props) } }] },
-      is_read: { checkbox: sendMail },
+      is_read: { checkbox: false },
       is_winner: { checkbox: isWinner },
       notification_type: { select: { name: 'email' } },
       template: { select: { name: template_id } },
