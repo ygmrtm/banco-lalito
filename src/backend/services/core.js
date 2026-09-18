@@ -413,7 +413,7 @@ const sobrinas = async (monto, description, peopleFrom) => {
 
           let i = 1;
           data.forEach((item) => {  
-              const pq = (i === 1 ? 0.40 : (i === 2 ? 0.30 : (i === 3 ? 0.20 : (i === 4 ? 0.10 : 0))));
+              const pq = (i === 1 ? 0.35 : (i === 2 ? 0.25 : (i === 3 ? 0.20 : (i === 4 ? 0.10 : (i === 5 ? 0.10 : 0)))));
               const notionlabel = item.properties.todoist.rich_text[0].plain_text;
               const indiceUrgencia = item.properties.indiceLanaDias.formula.number;
               properties = {
