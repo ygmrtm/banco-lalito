@@ -43,16 +43,24 @@ router.get('/health-check', async (req, res) => {
 });
 
 router.get('/redis/health-check', async (req, res) => {
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
     try {
         const redisClient = await initializeRedis();
         const pong = await redisClient.ping();
         const responseString = pong === 'PONG'
             ? 'Redis connection [✅]'
             : 'Redis connection [❌]';
-        res.json({ status: responseString });
+        res.json({ status: responseString, redisUrl });
     } catch (error) {
         console.error('Health check error:', error);
-        res.status(500).json({ status: 'Health check error', error: error.message });
+        res.status(500).json({
+            status: 'Health check error',
+            error: error.message,
+            redisUrl,
+            hint: redisUrl.includes('://redis:')
+                ? 'Hostname "redis" only works inside Docker Compose. For npm/nodemon use REDIS_URL=redis://localhost:6379 and start Redis with: docker compose up -d redis'
+                : 'Start Redis locally, e.g. docker compose up -d redis',
+        });
     }
 });
 

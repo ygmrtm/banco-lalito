@@ -2,6 +2,14 @@ const express = require('express');
 const { sendToNotionMoonLog } = require('../controllers/notion');
 const packageJson = require('../../../package.json');
 const { movimiento, mantenimiento, dispersionNomina, inversiones, sobrinas, markAsProcessed, executeLastMvmnts, parseSpanishDate, executeCCProcess } = require('./core');
+const {
+  listWatchlist,
+  listInvested,
+  refreshWatchlistById,
+  refreshInvestedById,
+  runDailyClose,
+  clampPageSize,
+} = require('./cryptoStocks');
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const multer = require('multer');
@@ -219,6 +227,69 @@ router.get('/get-notifications/:is_read', async (req, res) => {
   } catch (error) {
     console.error("Error get-notifications:", error);    
     res.status(500).json({ status: "Error get-notifications", error: error.message });
+  }
+});
+
+router.get('/crypto-stocks/watchlist', async (req, res) => {
+  try {
+    const payload = await listWatchlist({
+      sector: req.query.sector,
+      estat: req.query.estat,
+      font: req.query.font,
+      q: req.query.q,
+      cursor: req.query.cursor,
+      pageSize: clampPageSize(req.query.page_size),
+    });
+    res.json({ status: 'success', ...payload });
+  } catch (error) {
+    console.error('Error listing watchlist:', error);
+    res.status(500).json({ status: 'Error listing watchlist', error: error.message });
+  }
+});
+
+router.get('/crypto-stocks/invested', async (req, res) => {
+  try {
+    const payload = await listInvested({
+      symbol: req.query.symbol,
+      open: req.query.open,
+      q: req.query.q,
+      cursor: req.query.cursor,
+      pageSize: clampPageSize(req.query.page_size),
+    });
+    res.json({ status: 'success', ...payload });
+  } catch (error) {
+    console.error('Error listing invested:', error);
+    res.status(500).json({ status: 'Error listing invested', error: error.message });
+  }
+});
+
+router.post('/crypto-stocks/watchlist/:id/refresh', async (req, res) => {
+  try {
+    const updated = await refreshWatchlistById(req.params.id);
+    res.json({ status: 'success', updated });
+  } catch (error) {
+    console.error('Error refreshing watchlist item:', error);
+    res.status(500).json({ status: 'Error refreshing watchlist item', error: error.message });
+  }
+});
+
+router.post('/crypto-stocks/invested/:id/refresh', async (req, res) => {
+  try {
+    const updated = await refreshInvestedById(req.params.id);
+    res.json({ status: 'success', updated });
+  } catch (error) {
+    console.error('Error refreshing invested item:', error);
+    res.status(500).json({ status: 'Error refreshing invested item', error: error.message });
+  }
+});
+
+router.post('/crypto-stocks/daily-close', async (req, res) => {
+  try {
+    const report = await runDailyClose();
+    res.json({ status: 'success', report });
+  } catch (error) {
+    console.error('Error running daily close:', error);
+    res.status(500).json({ status: 'Error running daily close', error: error.message });
   }
 });
 

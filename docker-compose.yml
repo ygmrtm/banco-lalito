@@ -6,7 +6,7 @@ services:
     image: banco-lalito:v2
     container_name: banco-lalito-app
     ports:
-      - "3000:3000"
+      - "3000:3000" 
     env_file:
       - .env
     depends_on:
@@ -25,15 +25,23 @@ services:
       - DATABASE_CC_ID=${DATABASE_CC_ID}
       - DATABASE_NOT_ID=${DATABASE_NOT_ID}
       - DATABASE_TVW_ID=${DATABASE_TVW_ID}
+      - DATABASE_CSW_ID=${DATABASE_CSW_ID}
+      - DATABASE_CSI_ID=${DATABASE_CSI_ID}
       - BLOCK_STAT_LOG=${BLOCK_STAT_LOG}
+      - BLOCK_STOC_LOG=${BLOCK_STOC_LOG}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - OWNER_EMAIL=${OWNER_EMAIL}
       - TEMPLATE_NEG_ID=${TEMPLATE_NEG_ID}
       - TEMPLATE_WIN_ID=${TEMPLATE_WIN_ID}
       - TEMPLATE_POS_ID=${TEMPLATE_POS_ID}
       - PRICE_AMT=${PRICE_AMT}
+      - BANXICO_TOKEN=${BANXICO_TOKEN}
+      - CRYPTO_STOCKS_CRON=${CRYPTO_STOCKS_CRON}
+      - CRYPTO_STOCKS_CRON_TZ=${CRYPTO_STOCKS_CRON_TZ}
 
   redis:
     image: redis:alpine
     container_name: banco-lalito-redis
+    ports:
+      - "6379:6379"
     restart: always
