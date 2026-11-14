@@ -37,4 +37,10 @@ app.get('/card/:name', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port http://localhost:${PORT}`);
+  const { startDailyCloseScheduler } = require('./src/backend/services/cryptoStocks');
+  startDailyCloseScheduler();
+});
+
+module.exports = { app, server };

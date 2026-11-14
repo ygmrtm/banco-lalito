@@ -1,0 +1,349 @@
+{
+  "info": {
+    "name": "Banco Lalito",
+    "description": "Local API collection for Banco Lalito (`/api` and `/notion`).\n\nImport this file and `banco-lalito.postman_environment.json`, then select **Banco Lalito Local**.\n\nDestructive/batch requests (pendientes, estadisticas, send-emails, daily-close, process-xlsx) write to Notion — run them on purpose.\n\nWatchlist/invested list tests save `watchlistId`, `investedId`, and pagination cursors from the first page.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "App version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/version"
+          }
+        },
+        {
+          "name": "Notion health-check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/notion/health-check"
+          }
+        },
+        {
+          "name": "Redis health-check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/notion/redis/health-check"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crypto & Stocks",
+      "item": [
+        {
+          "name": "List watchlist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('returns results array', () => pm.expect(json.results).to.be.an('array'));",
+                  "if (json.results && json.results[0] && json.results[0].id) {",
+                  "  pm.environment.set('watchlistId', json.results[0].id);",
+                  "}",
+                  "if (json.next_cursor) {",
+                  "  pm.environment.set('watchlistCursor', json.next_cursor);",
+                  "} else {",
+                  "  pm.environment.set('watchlistCursor', '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/crypto-stocks/watchlist?page_size={{pageSize}}&sector={{watchlistSector}}&estat={{watchlistEstat}}&font={{watchlistFont}}&q={{watchlistQ}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "crypto-stocks", "watchlist"],
+              "query": [
+                { "key": "page_size", "value": "{{pageSize}}" },
+                { "key": "sector", "value": "{{watchlistSector}}", "description": "Exact Notion select, e.g. accions amb dividends" },
+                { "key": "estat", "value": "{{watchlistEstat}}", "description": "Exact status, e.g. comprada | oberta" },
+                { "key": "font", "value": "{{watchlistFont}}", "description": "BMV, crypto, …" },
+                { "key": "q", "value": "{{watchlistQ}}", "description": "Contains on símbol or nom" },
+                { "key": "cursor", "value": "{{watchlistCursor}}", "disabled": true, "description": "Enable after the first page" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List watchlist (next page)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/crypto-stocks/watchlist?page_size={{pageSize}}&cursor={{watchlistCursor}}&font={{watchlistFont}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "crypto-stocks", "watchlist"],
+              "query": [
+                { "key": "page_size", "value": "{{pageSize}}" },
+                { "key": "cursor", "value": "{{watchlistCursor}}" },
+                { "key": "font", "value": "{{watchlistFont}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh watchlist by id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('returns USD quote metadata', () => {",
+                  "  pm.expect(json.updated.priceUsd).to.be.a('number');",
+                  "  pm.expect(json.updated.currency).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Updates Notion `preu actual usd`. MXN Yahoo quotes are converted with Banxico FIX.",
+            "url": "{{baseUrl}}/api/crypto-stocks/watchlist/{{watchlistId}}/refresh"
+          }
+        },
+        {
+          "name": "List invested (open)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('returns results array', () => pm.expect(json.results).to.be.an('array'));",
+                  "if (json.results && json.results[0] && json.results[0].id) {",
+                  "  pm.environment.set('investedId', json.results[0].id);",
+                  "  if (json.results[0].uniqueId) pm.environment.set('investedUniqueId', json.results[0].uniqueId);",
+                  "}",
+                  "if (json.next_cursor) {",
+                  "  pm.environment.set('investedCursor', json.next_cursor);",
+                  "} else {",
+                  "  pm.environment.set('investedCursor', '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/crypto-stocks/invested?page_size={{pageSize}}&open={{investedOpen}}&symbol={{investedSymbol}}&q={{investedQ}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "crypto-stocks", "invested"],
+              "query": [
+                { "key": "page_size", "value": "{{pageSize}}" },
+                { "key": "open", "value": "{{investedOpen}}", "description": "true = done formula is false" },
+                { "key": "symbol", "value": "{{investedSymbol}}", "description": "Exact select, e.g. GMEXICO/B" },
+                { "key": "q", "value": "{{investedQ}}", "description": "Contains on Name" },
+                { "key": "cursor", "value": "{{investedCursor}}", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List invested (next page)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/crypto-stocks/invested?page_size={{pageSize}}&cursor={{investedCursor}}&open={{investedOpen}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "crypto-stocks", "invested"],
+              "query": [
+                { "key": "page_size", "value": "{{pageSize}}" },
+                { "key": "cursor", "value": "{{investedCursor}}" },
+                { "key": "open", "value": "{{investedOpen}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh invested by Notion id",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Updates `1$usd a $mx actual`. Also backfills `stocks.watchlist.db` when empty.",
+            "url": "{{baseUrl}}/api/crypto-stocks/invested/{{investedId}}/refresh"
+          }
+        },
+        {
+          "name": "Refresh invested by unique id (CRY-87)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/crypto-stocks/invested/{{investedUniqueId}}/refresh"
+          }
+        },
+        {
+          "name": "Run daily close",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Batch job: stale watchlist USD prices + open lots FX + report. Writes many Notion pages.",
+            "url": "{{baseUrl}}/api/crypto-stocks/daily-close"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operations",
+      "item": [
+        {
+          "name": "Get pendientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/get-pendientes"
+          }
+        },
+        {
+          "name": "Confirm task",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "status: pending | ready | done (anything else marks processed). Writes Notion.",
+            "url": "{{baseUrl}}/api/confirm-task/{{taskId}}/{{taskStatus}}/{{taskMonto}}"
+          }
+        },
+        {
+          "name": "Process pendientes",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Runs the pending-transaction processor. Writes Notion.",
+            "url": "{{baseUrl}}/api/pendientes"
+          }
+        },
+        {
+          "name": "Estadisticas",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Generates balance / Moon Log. Writes Notion.",
+            "url": "{{baseUrl}}/api/estadisticas"
+          }
+        },
+        {
+          "name": "Process credit-card XLSX",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select the bank XLSX in Postman before sending"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/process-xlsx"
+          }
+        }
+      ]
+    },
+    {
+      "name": "People & notifications",
+      "item": [
+        {
+          "name": "Get people by type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "peopleType is compared to Notion `type` select (A, Q, …).",
+            "url": "{{baseUrl}}/notion/get-people/{{peopleType}}"
+          }
+        },
+        {
+          "name": "Get notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/get-notifications/{{notificationIsRead}}"
+          }
+        },
+        {
+          "name": "Send emails",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "days", "value": "{{days}}" },
+              { "key": "notionlabel", "value": "{{notionlabel}}" }
+            ],
+            "description": "Uses headers `days` and `notionlabel` (not a JSON body). Writes notifications in Notion.",
+            "url": "{{baseUrl}}/api/send-emails"
+          }
+        },
+        {
+          "name": "Get list of winners",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/notion/get-list-of-winners"
+          }
+        }
+      ]
+    },
+    {
+      "name": "TradingView",
+      "item": [
+        {
+          "name": "Sectors",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.sectors && json.sectors[0]) {",
+                  "  pm.environment.set('tradingviewSector', json.sectors[0]);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/notion/tradingview/sectors"
+          }
+        },
+        {
+          "name": "Symbols by sector",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/notion/tradingview/symbols/{{tradingviewSector}}"
+          }
+        }
+      ]
+    }
+  ]
+}
